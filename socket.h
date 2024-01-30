@@ -8,6 +8,8 @@
 #include<arpa/inet.h>
 #include<unistd.h>
 
+#include"message/message.h"
+
 #include"log.h"
 
 
@@ -123,6 +125,18 @@ private:
     //超时时间
     int timeoutInSeconds = 5;
 
+
+};
+
+class TcpServer{
+public:
+    typedef std::shared_ptr<TcpServer> ptr;
+    //通过这个方法从网络中获取message
+    Message::ptr getMessage();
+    void stop();
+private:
+
+    bool m_stop = false;
 
 };
 

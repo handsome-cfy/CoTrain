@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra
 LDFLAGS = -pthread
 
-SRCS = main.cpp log.cpp thread.cpp socket.cpp
+SRCS = main.cpp log.cpp thread.cpp socket.cpp uniqueid.cpp
 OBJS = $(SRCS:.cpp=.o)
 EXEC = program
 

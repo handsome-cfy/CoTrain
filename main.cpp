@@ -1,6 +1,7 @@
 #include"log.h"
 #include"thread.h"
 #include"socket.h"
+#include"message/uniqueid.h"
 
 #include<utility>
 #include<memory>
