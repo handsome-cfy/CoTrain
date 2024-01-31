@@ -23,9 +23,18 @@
             ],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
             "detail": "调试器生成的任务。"
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "make",
+            "group": {
+              "kind": "build",
+              "isDefault": true
+            }
         }
     ],
     "version": "2.0.0"

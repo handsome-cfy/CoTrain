@@ -1,20 +1,31 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra
-LDFLAGS = -pthread
+CXXFLAGS = -std=c++11 -g
 
-SRCS = main.cpp log.cpp thread.cpp socket.cpp uniqueid.cpp
-OBJS = $(SRCS:.cpp=.o)
-EXEC = program
+SRCDIR = .
+OBJDIR = obj
+BINDIR = bin
 
-.PHONY: all clean
+SRC = $(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/message/*.cpp)
+OBJ = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
 
-all: $(EXEC)
+TARGETS = $(patsubst $(SRCDIR)/test/%.cpp,$(BINDIR)/%,$(wildcard $(SRCDIR)/test/*.cpp))
 
-$(EXEC): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) -o $(EXEC)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+all: $(TARGETS)
+
+$(BINDIR)/%: $(OBJ) $(OBJDIR)/test/%.o
+	@mkdir	-p $(@D)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)/message/%.o: $(SRCDIR)/message/%.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+.PHONY: clean
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -rf $(OBJDIR) $(BINDIR)

@@ -8,7 +8,7 @@
             "name": "(lldb) 启动",
             "type": "cppdbg",
             "request": "launch",
-            "program": "输入程序名称，例如 ${workspaceFolder}/a.out",
+            "program": "${workspaceFolder}/program",
             "args": [
                 "-std=c++11"
             ],
@@ -17,7 +17,31 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"
-        }
-
+        },
+        {
+            "name": "Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/program",  // 可执行文件的路径
+            "args": [],                               // 可选：传递给程序的命令行参数
+            "cwd": "${workspaceFolder}",               // 可选：运行程序时的工作目录
+            "environment": [],
+            "externalConsole": true,                   // 可选：在外部终端中运行程序
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb"           // 可选：gdb可执行文件的路径
+        },
+        {
+            "name": "Build and Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/main",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "Build"
+          }
     ]
 }

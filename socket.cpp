@@ -94,21 +94,39 @@ bool TcpSocket::send(const void *data, size_t size)
     }
 }
 
+bool TcpSocket::send(const Message::ptr message)
+{
+    //TODO: 完成从信息到传输数据的编码
+    return false;
+}
+
 bool TcpSocket::receive(void *buffer, size_t size)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     if (b_connect && m_socketid != -1) {
             int receivedBytes = recv(m_socketid, buffer, size, 0);
             if (receivedBytes == -1) {
-                // 接收失败的处理
+                //TODO 接收失败的处理
                 return false;
             }
-            // 接收成功的处理
+            //TODO 接收成功的处理
             return true;
         }
         else {
             return false;
         }
+}
+
+Message::ptr TcpSocket::receive()
+{  
+    
+    Message::ptr message = Message::ptr(new BufMessage());
+    uint16_t size = message->getsize();
+    if(receive(message->getdata(),size)){
+        return message;
+    }
+
+    return nullptr;
 }
 
 void TcpSocket::disconnect()
@@ -120,6 +138,16 @@ void TcpSocket::disconnect()
     }
 }
 
+Message::ptr TcpServer::getMessage()
+{
+    //TODO getMessage
+    return Message::ptr();
+}
+
+void TcpServer::stop()
+{
+    //TODO stop
+}
 }
 
 #endif

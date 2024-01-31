@@ -19,7 +19,8 @@ public:
     char* getid(){return m_id;}
 
     UniqueID(){}
-    virtual ~UniqueID() = 0;
+    
+    virtual ~UniqueID();
 protected:
     //用于存储id编码的字符数组
     char* m_id;
@@ -37,7 +38,8 @@ public:
         sequence(0),
         lastTimestamp(0){
         }
-
+    
+    ~SnowFlakeID(){}
     uint64_t getTimeStamp();
 
 private:

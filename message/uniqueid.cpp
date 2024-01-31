@@ -26,3 +26,7 @@ uint64_t CoTrain::SnowFlakeID::getTimeStamp()
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     return static_cast<uint64_t>(millis);
 }
+
+CoTrain::UniqueID::~UniqueID()
+{
+}

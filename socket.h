@@ -15,6 +15,8 @@
 
 namespace CoTrain{
 
+class BufMessage;
+
 class Address{
 public:
     //总得有个字符串作为地址吧
@@ -93,8 +95,10 @@ public:
     virtual void disconnect() = 0;
 
     virtual bool send(const void* data, size_t size) = 0;
+    virtual bool send(const Message::ptr message) = 0;
 
     virtual bool receive(void* buffer, size_t size) = 0;
+    virtual Message::ptr receive() = 0;
 
 
 protected:
@@ -111,7 +115,9 @@ public:
     TcpSocket(){};
     bool connect(Address::ptr address, uint32_t port) override;
     bool send(const void* data, size_t size) override;
+    bool send(const Message::ptr message) override;
     bool receive(void* buffer, size_t size) override;
+    Message::ptr receive() override;
     void disconnect() override;
 
 protected:
@@ -134,6 +140,8 @@ public:
     //通过这个方法从网络中获取message
     Message::ptr getMessage();
     void stop();
+    //TODO TcpServer()
+    TcpServer(){}
 private:
 
     bool m_stop = false;
