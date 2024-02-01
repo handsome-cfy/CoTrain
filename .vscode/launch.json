@@ -22,11 +22,11 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/program",  // 可执行文件的路径
+            "program": "${workspaceFolder}/bin/main",  // 可执行文件的路径
             "args": [],                               // 可选：传递给程序的命令行参数
             "cwd": "${workspaceFolder}",               // 可选：运行程序时的工作目录
             "environment": [],
-            "externalConsole": true,                   // 可选：在外部终端中运行程序
+            "externalConsole": false,                   // 可选：在外部终端中运行程序
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb"           // 可选：gdb可执行文件的路径
         },
@@ -34,14 +34,21 @@
             "name": "Build and Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/main",
+            "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "Build"
+            "preLaunchTask": "Build",
+            "setupCommands": [
+                {
+                    "text": "set auto-solib-add off",
+                    "description": "Disable auto-solib-add"
+                }
+            ],
+
           }
     ]
 }

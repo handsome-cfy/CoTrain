@@ -45,6 +45,16 @@ void IPV4Address::init_port(int port)
 
 }
 
+TcpSocket::TcpSocket()
+{
+    m_socketid = socket(AF_INET,SOCK_STREAM,0);
+}
+
+TcpSocket::TcpSocket(int socketid, Address::ptr address)
+{
+    m_socketid = socketid;
+    m_C_addr = address;
+}
 
 bool TcpSocket::connect(Address::ptr c_address, uint32_t port)
 {
@@ -55,7 +65,7 @@ bool TcpSocket::connect(Address::ptr c_address, uint32_t port)
     m_port = port;
     c_address->init_port(m_port);
 
-    m_socketid = socket(AF_INET,SOCK_STREAM,0);
+    
 
     //设置超时时间
 
@@ -138,6 +148,15 @@ void TcpSocket::disconnect()
     }
 }
 
+bool TcpSocket::bind(const Address::ptr address)
+{
+    int ret = ::bind(m_socketid,(sockaddr *)(address->getsockaddr()), address->getsockaddr_size());
+    if(ret != -1){
+        return true;
+    }
+    return false;
+}
+
 Message::ptr TcpServer::getMessage()
 {
     //TODO getMessage
@@ -147,6 +166,107 @@ Message::ptr TcpServer::getMessage()
 void TcpServer::stop()
 {
     //TODO stop
+}
+TcpServer::TcpServer()
+{
+    m_listen_socket = TcpListenSocket::ptr(new TcpListenSocket());
+    
+}
+void TcpServer::Listen(uint32_t port)
+{
+    Init(port);
+    int ret = ::listen(m_listen_socket->getsocketid(),m_max_connect);
+    if(ret == -1){
+        logger->debug(logger->CreateEvent(
+            "Listen Fialed",m_threadname
+        ));
+        return;
+    }
+
+    while(!m_stop){
+        if(m_socket_list.size() >= m_max_connect){
+            
+            //如果连接数量达到上限，停止listen
+            continue;
+        }
+        IPV4Address::ptr client_address = IPV4Address::ptr(new IPV4Address());
+        // m_listen_socket = static_cast<TcpListenSocket::ptr>(m_listen_socket);
+        // cfd 就是连接的客户端的套接字
+        int cfd = m_listen_socket->accept(client_address);
+        if (cfd < 0){
+            // no accepts
+            continue;
+        }else{
+            char ip[16] = "";
+            u_int32_t port = 0;
+            inet_ntop(AF_INET, &(client_address->getsockaddr()->sin_addr.s_addr),ip,16);
+            client_address->setip(std::string(ip));
+            port = ntohs(client_address->getsockaddr()->sin_port);
+            //TODO Maybe here could create a address(addr_);
+            client_address->setport(port);
+
+            TcpSocket::ptr client_socket = TcpSocket::ptr(new TcpSocket(cfd,client_address));
+            m_socket_list.push_back(client_socket);
+
+            std::stringstream ss;
+            ss << "The IP: " << ip << " Port: " << port << " connected" << std::endl;
+
+            {
+                logger->info(
+                    logger->CreateEvent(
+                        ss.str(),m_threadname
+                    )
+                );
+            }
+            
+        }
+    }
+
+}
+void TcpServer::Init(uint32_t port)
+{
+    m_server_address->init_port(port);
+    m_server_address->getsockaddr()->sin_addr.s_addr = htonl(INADDR_ANY);
+
+    logger = LogMannager::instance();
+
+    if(m_listen_socket->bind(m_server_address)){
+        {
+            logger->debug(logger->CreateEvent(
+                "Listen Bind Success",m_threadname
+            ));
+        }
+
+    }else{
+        //bind fail
+        logger->error(logger->CreateEvent(
+            "Listen Bind Failed",m_threadname
+        ));
+    }
+
+}
+uint32_t TcpServer::get_new_port()
+{
+    //TODO 这玩意不可靠
+    return m_base_port + m_socket_list.size();
+}
+TcpListenSocket::TcpListenSocket(Address::ptr server_address, uint16_t port)
+{
+    m_S_addr = server_address;
+
+    uint16_t retry = retry_max_time;
+    while(retry--){
+        if(this->connect(m_S_addr,port)){
+            break;
+        }
+    }
+
+}
+
+int TcpListenSocket::accept(Address::ptr address)
+{
+    socklen_t cil_len = static_cast<socklen_t>(address->getsockaddr_size());
+    return ::accept(m_socketid,(sockaddr*)address->getsockaddr(),&cil_len);
 }
 }
 

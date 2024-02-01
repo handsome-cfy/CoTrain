@@ -35,6 +35,8 @@ public:
     virtual void init_port(int port) = 0;
 
     virtual sockaddr_in* getsockaddr() = 0;
+
+    virtual uint16_t getsockaddr_size() = 0;
     //线程安全
     std::mutex m_mutex;
 };
@@ -58,7 +60,13 @@ public:
 
     virtual AddressType::Type getType() const = 0;
 
-
+    std::string getip(){return m_ip;}
+    void setip(std::string val){m_ip = val;}
+    uint32_t getport(){return m_port;}
+    void setport(uint32_t val){m_port =val;}
+private:
+    std::string m_ip;
+    uint32_t m_port;
 
 };
 
@@ -69,17 +77,21 @@ public:
 
     // 构造函数，接受一个字符串地址作为参数，例如 "192.168.0.1"
     explicit IPV4Address(const std::string& addr);
+    explicit IPV4Address(){}
 
     // 重写基类的纯虚函数
     std::string toString() const override;
     std::vector<uint8_t> toByte() const override;
     AddressType::Type getType() const override;
+
+    //TODO: fix the operator by compare ip and port
     bool operator<(const Address& other) const override;
     bool operator==(const Address& other) const override;
     bool operator!=(const Address& other) const override;
     void init_port(int port) override;
 
     sockaddr_in* getsockaddr() override {return &m_sockaddr;}
+    uint16_t getsockaddr_size() override {return sizeof(m_sockaddr);}
 private:
 
     sockaddr_in m_sockaddr;
@@ -91,6 +103,7 @@ public:
     virtual bool connect(Address::ptr address,uint32_t port) = 0;
     //是否已连接
     bool isconnect(){return b_connect;}
+    int getsocketid(){return m_socketid;}
     //断开连接
     virtual void disconnect() = 0;
 
@@ -100,6 +113,9 @@ public:
     virtual bool receive(void* buffer, size_t size) = 0;
     virtual Message::ptr receive() = 0;
 
+    virtual bool bind(const Address::ptr address) = 0;
+
+    virtual int accept(Address::ptr address) = 0;
 
 protected:
     bool b_connect = false;
@@ -112,25 +128,41 @@ protected:
 class TcpSocket : public Socket{
 public:
 
-    TcpSocket(){};
+    TcpSocket();
+    TcpSocket(int socketid, Address::ptr address);
+
+    //用于连接其他设备
     bool connect(Address::ptr address, uint32_t port) override;
     bool send(const void* data, size_t size) override;
     bool send(const Message::ptr message) override;
     bool receive(void* buffer, size_t size) override;
     Message::ptr receive() override;
     void disconnect() override;
+    bool bind(const Address::ptr address) override;
+
+    virtual int accept(Address::ptr address){}
 
 protected:
+    Address::ptr m_S_addr;
 
 private:
     uint32_t m_port;
-
-    Address::ptr m_S_addr;
     Address::ptr m_C_addr;
 
     //超时时间
     int timeoutInSeconds = 5;
 
+
+};
+
+//用来处理当，接入一个新的设备的时候，分配一个新的端口
+class TcpListenSocket: public TcpSocket{
+public:
+    TcpListenSocket(){};
+    TcpListenSocket(Address::ptr server_address, uint16_t port);
+    int accept(Address::ptr address) override;
+private:
+    static const uint16_t retry_max_time = 10;
 
 };
 
@@ -141,11 +173,34 @@ public:
     Message::ptr getMessage();
     void stop();
     //TODO TcpServer()
-    TcpServer(){}
-private:
+    TcpServer();
 
+    // 用于一直监听某个端口
+    void Listen(uint32_t port);
+
+    // 初始化服务器阐述
+    void Init(uint32_t port);
+
+    // 对于获取到的新连接信息，把它连接上并且加入到list之中，分配一个新的port
+private:
+    //建立的连接的vector
+    std::vector<Socket::ptr> m_socket_list;
     bool m_stop = false;
 
+    //服务器本地的地址
+    IPV4Address::ptr m_server_address;
+    //从哪个端口开始分配
+    uint16_t m_base_port = 11000;
+    //最大的连接数量
+    uint16_t m_max_connect = 100;
+
+    TcpListenSocket::ptr m_listen_socket;
+
+    LogMannager::ptr logger;
+
+    std::string m_threadname="TcpServer";
+
+    uint32_t get_new_port();
 };
 
 }

@@ -56,12 +56,35 @@ public:
 
 };
 
+class ComMessageType{
+public:
+    typedef std::shared_ptr<ComMessageType> ptr;
+    enum ComType{
+        CONNECT,
+        CLOSE,
+    };
+};
+
 //  用于构建分布式系统的message
 class ComMessage: public Message{
 public:
+    ComMessage(uint32_t port){
+        m_messagetype = ComMessageType::ComType::CONNECT;
+        // char * buf = static_cast<char *>(m_data);
+        char buf[max_com_len] = "";
+        buf[0] = int(m_messagetype);
+        std::string s_port = std::to_string(port);
+        strcpy(buf+1,s_port.c_str());
+        m_data = static_cast<void *>(buf);
 
+    }
+    ComMessage();
+    ~ComMessage();
 private:
+    ComMessageType::ComType m_messagetype;
+    constexpr static uint16_t max_com_len = 150;
 };
+
 
 }
 #endif

@@ -25,4 +25,10 @@ namespace CoTrain
     BufMessage::~BufMessage()
     {
     }
+    ComMessage::ComMessage()
+    {
+    }
+    ComMessage::~ComMessage()
+    {
+    }
 }
