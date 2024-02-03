@@ -42,10 +42,17 @@ void CoTrain::ThreadPool::init()
                         m_pool_sem->wait();
                         {
                         //获取任务队列的使用权
+                        
+                        // std::cout << "get" << std::endl;
+
                         std::unique_lock<std::mutex> lock(m_task_mutex);
                         //获取到之后
                         if (!m_taskqueue.empty()){
                             Task task = m_taskqueue.top();
+                            
+                            // lock.release();
+                            // std::cout << "release" << std::endl;
+
                             task.callback();
                             m_taskqueue.pop();
                         }
@@ -78,6 +85,27 @@ CoTrain::ThreadPool::~ThreadPool()
     for(auto& thread : m_pool){
         thread->join();
     }
+    for(auto& thread : m_loop_pool){
+        thread->join();
+    }
+}
+
+bool CoTrain::ThreadPool::getstop()
+{
+    std::unique_lock<std::mutex> lock(m_stop_mutex);
+    return m_stop;
+}
+
+void CoTrain::ThreadPool::setstop(bool val)
+{
+    std::unique_lock<std::mutex> lock(m_stop_mutex);
+    m_stop = val;
+}
+
+void CoTrain::ThreadPool::addLoopThread(Thread::ptr thread)
+{
+    std::unique_lock<std::mutex> lock(m_loop_mutex);
+    m_loop_pool.push_back(thread);
 }
 
 #endif

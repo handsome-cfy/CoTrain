@@ -54,6 +54,7 @@ TcpSocket::TcpSocket(int socketid, Address::ptr address)
 {
     m_socketid = socketid;
     m_C_addr = address;
+    b_connect = true;
 }
 
 bool TcpSocket::connect(Address::ptr c_address, uint32_t port)
@@ -160,12 +161,23 @@ bool TcpSocket::bind(const Address::ptr address)
 Message::ptr TcpServer::getMessage()
 {
     //TODO getMessage
+    if(m_socket_list.size()>0){
+        auto socket = m_socket_list[m_pos];
+        m_pos = (m_pos + 1)%(m_socket_list.size());
+        if(socket->isconnect()){
+            return socket->receive();
+        }
+    }
     return Message::ptr();
 }
 
 void TcpServer::stop()
 {
-    //TODO stop
+    m_stop = true;
+    for(auto socket : m_socket_list){
+        socket->disconnect();
+    }
+
 }
 TcpServer::TcpServer()
 {
@@ -223,11 +235,27 @@ void TcpServer::Listen(uint32_t port)
     }
 
 }
+void TcpServer::Listen(ThreadPool::ptr pool, uint32_t port)
+{
+    if(pool != nullptr){
+        pool->addLoopThread(
+            Thread::ptr(new Thread(
+                m_threadname,
+                [this,port](){
+                    this->TcpServer::Listen(port);
+                }
+            )
+        ));
+    }
+}
 void TcpServer::Init(uint32_t port)
 {
     m_server_address->init_port(port);
     m_server_address->getsockaddr()->sin_addr.s_addr = htonl(INADDR_ANY);
 
+    if(m_listen_socket == nullptr){
+        m_listen_socket = TcpSocket::ptr(new TcpSocket());
+    }
     logger = LogMannager::instance();
 
     if(m_listen_socket->bind(m_server_address)){

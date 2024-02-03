@@ -4,14 +4,20 @@
 
 namespace CoTrain{
 
-bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool)
+bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool, uint32_t port)
 {
-    threadpool->enqueue(
+    m_tcp_server->Listen(threadpool,port);
+    threadpool->addLoopThread(
         //消息队列
-        Task(1,
+        Thread::ptr(new Thread("MessageQueue",
             [this](){
+                int count = 0;
                 while(1){
                     {
+                        // LogMannager::ptr logger = LogMannager::instance();
+                        // logger->debug(
+                        // logger->CreateEvent(
+                        //     "This is messagequeue Thead"));
                         //线程安全
                         std::unique_lock<std::mutex> lock(this->m_mutex);
                         if(m_tcp_server != nullptr){
@@ -19,13 +25,12 @@ bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool)
                             
                             if(message != nullptr){
                                 //等待获取
-                                this->m_sem_producer->wait();
-                                this->m_message_queue.push(message);
-                                this->m_sem_producer->notify();
-
+                                count++;
+                                this->push(message);
                             }else if(m_stop){
                                 //停止该服务
                                 m_tcp_server->stop();
+                                m_sem_stop->notify();
                                 return;
                             }
 
@@ -34,7 +39,7 @@ bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool)
 
                 }
             }
-        )
+        ))
     );
     return false;
 }
@@ -43,18 +48,18 @@ void CoTrain::MessageQueue::push(Message::ptr message)
 {
     m_sem_producer->wait();
     m_message_queue.push(message);
-    m_sem_producer->notify();
+    m_sem_reduecer->notify();
 }
 
 Message::ptr CoTrain::MessageQueue::pop()
 {
-    m_sem_producer->wait();
+    m_sem_reduecer->wait();
+    // std::unique_lock<std::mutex> lock(m_mutex);
     if(!m_message_queue.empty()){
         {
-            std::unique_lock<std::mutex> lock(m_mutex);
             Message::ptr message = m_message_queue.front();
             m_message_queue.pop();
-            m_sem_reduecer->notify();
+            m_sem_producer->notify();
             return message;
         }
     }else{
@@ -62,6 +67,16 @@ Message::ptr CoTrain::MessageQueue::pop()
     }
 }
 
+MessageQueue::~MessageQueue()
+{
+    // m_tcp_server->stop();
+    m_stop = true;
+    m_sem_stop->wait();
+}
+MessageQueue::MessageQueue()
+{
+    m_tcp_server = TcpServer::ptr(new TcpServer());
+}
 }
 
 #endif

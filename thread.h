@@ -10,6 +10,7 @@
 #include <functional>
 #include <string>
 #include <sstream>
+#include <iostream>
 
 namespace CoTrain
 {
@@ -56,10 +57,14 @@ namespace CoTrain
     public:
         int priority;
         std::function<void()> callback;
+        // template <typename Callable, typename... Args>
+        // Task(Callable &&callable, Args &&...args):
+        //     priority(1),
+        //     callback(std::bind(std::forward<Callable>(callable), std::forward<Args>(args)...)){}
         template <typename Callable, typename... Args>
         Task(int priority, Callable &&callable, Args &&...args)
             : priority(priority),
-              callback(std::bind(std::forward<Callable>(callable), std::forward<Args>(args)...)) {}
+            callback(std::bind(std::forward<Callable>(callable), std::forward<Args>(args)...)) {}
     };
 
     class TaskCompare
@@ -93,6 +98,11 @@ namespace CoTrain
         };
         ~ThreadPool();
 
+        bool getstop();
+        void setstop(bool val);
+
+        void addLoopThread(Thread::ptr thread);
+
     private:
         // 最大线程数量
         int16_t m_max_thread_number = 20;
@@ -103,8 +113,13 @@ namespace CoTrain
         // 线程池
         std::vector<Thread::ptr> m_pool;
 
+        // 用来处理死循环任务的线程池
+        std::mutex m_loop_mutex;
+        std::vector<Thread::ptr> m_loop_pool;
+
         Semaphore::ptr m_pool_sem;
 
+        std::mutex m_stop_mutex;
         bool m_stop=false;
 
         // 禁止拷贝构造

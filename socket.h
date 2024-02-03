@@ -177,6 +177,7 @@ public:
 
     // 用于一直监听某个端口
     void Listen(uint32_t port);
+    void Listen(ThreadPool::ptr pool,uint32_t port);
 
     // 初始化服务器阐述
     void Init(uint32_t port);
@@ -201,6 +202,9 @@ private:
     std::string m_threadname="TcpServer";
 
     uint32_t get_new_port();
+
+    // 当前访问的socket位置
+    uint16_t m_pos = 0;
 };
 
 }
