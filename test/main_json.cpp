@@ -1,5 +1,6 @@
 #include <iostream>
 #include "nlohmann/json.hpp"
+#include "../config/config.h"
 
 using json = nlohmann::json;
 

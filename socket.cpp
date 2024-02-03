@@ -170,7 +170,7 @@ void TcpServer::stop()
 TcpServer::TcpServer()
 {
     m_listen_socket = TcpListenSocket::ptr(new TcpListenSocket());
-    
+    m_server_address = IPV4Address::ptr(new IPV4Address());
 }
 void TcpServer::Listen(uint32_t port)
 {

@@ -32,22 +32,13 @@
         },
         {
             "name": "Build and Debug",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
             "args": [],
-            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Build",
-            "setupCommands": [
-                {
-                    "text": "set auto-solib-add off",
-                    "description": "Disable auto-solib-add"
-                }
-            ],
+
 
           }
     ]
