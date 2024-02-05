@@ -14,7 +14,7 @@ using namespace CoTrain;
 
 int main(void){
     //初始化日志系统
-    LogMannager::ptr log = LogMannager::instance();
+    LogManager::ptr log = LogManager::instance();
     // log->init();
     
     //初始化线程池

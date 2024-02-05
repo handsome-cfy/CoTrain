@@ -1,0 +1,4 @@
+{
+    "MaxPoolThreadNumber":20,
+    "MaxMessageQueueLength":20
+}

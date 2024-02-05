@@ -75,6 +75,11 @@ void CoTrain::ThreadPool::enqueue(const Task &task)
     m_pool_sem->notify();
 }
 
+CoTrain::ThreadPool::ThreadPool(ServerNodeConfig::ptr config){
+    m_max_thread_number = config->getMaxThreadNumber();
+    m_stop = false;
+}
+
 CoTrain::ThreadPool::~ThreadPool()
 {
     {

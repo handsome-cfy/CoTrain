@@ -21,7 +21,7 @@ public:
     ~MessageQueue();
 
     MessageQueue();
-    MessageQueue(Config::ptr config){}
+    MessageQueue(ServerNodeConfig::ptr config);
 private:
     //互斥锁
     std::mutex m_mutex;

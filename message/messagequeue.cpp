@@ -77,6 +77,11 @@ MessageQueue::MessageQueue()
 {
     m_tcp_server = TcpServer::ptr(new TcpServer());
 }
+MessageQueue::MessageQueue(ServerNodeConfig::ptr config)
+{
+    //TODO MessageQueue Config
+    m_tcp_server = TcpServer::ptr(new TcpServer(config));
+}
 }
 
 #endif

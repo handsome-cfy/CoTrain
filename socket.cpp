@@ -55,6 +55,26 @@ TcpSocket::TcpSocket(int socketid, Address::ptr address)
     m_socketid = socketid;
     m_C_addr = address;
     b_connect = true;
+    is_address_valid = true;
+}
+
+TcpSocket::TcpSocket(ClientNodeConfig::ptr config)
+{
+    std::string ip  = config->getServerIP();
+    uint32_t port = config->getServerPort();
+    m_C_addr = IPV4Address::ptr(new IPV4Address(ip));
+    m_port = port;
+
+    //设置地址与端口合法
+    is_address_valid = true;
+}
+
+bool TcpSocket::connect()
+{
+    if(is_address_valid){
+        return this->connect(m_C_addr,m_port);
+    }
+    return false;
 }
 
 bool TcpSocket::connect(Address::ptr c_address, uint32_t port)
@@ -78,12 +98,12 @@ bool TcpSocket::connect(Address::ptr c_address, uint32_t port)
     if(ret == -1){
         b_connect = false;
 
-        LogMannager::ptr log =  LogMannager::instance();
+        LogManager::ptr log =  LogManager::instance();
         log->debug(log->CreateEvent("unConnected"));
     }else{
         b_connect = true;
 
-        LogMannager::ptr log =  LogMannager::instance();
+        LogManager::ptr log =  LogManager::instance();
         log->debug(log->CreateEvent("Connected"));
     }
 
@@ -160,7 +180,6 @@ bool TcpSocket::bind(const Address::ptr address)
 
 Message::ptr TcpServer::getMessage()
 {
-    //TODO getMessage
     if(m_socket_list.size()>0){
         auto socket = m_socket_list[m_pos];
         m_pos = (m_pos + 1)%(m_socket_list.size());
@@ -180,6 +199,11 @@ void TcpServer::stop()
 
 }
 TcpServer::TcpServer()
+{
+    m_listen_socket = TcpListenSocket::ptr(new TcpListenSocket());
+    m_server_address = IPV4Address::ptr(new IPV4Address());
+}
+TcpServer::TcpServer(ServerNodeConfig::ptr config)
 {
     m_listen_socket = TcpListenSocket::ptr(new TcpListenSocket());
     m_server_address = IPV4Address::ptr(new IPV4Address());
@@ -256,7 +280,7 @@ void TcpServer::Init(uint32_t port)
     if(m_listen_socket == nullptr){
         m_listen_socket = TcpSocket::ptr(new TcpSocket());
     }
-    logger = LogMannager::instance();
+    logger = LogManager::instance();
 
     if(m_listen_socket->bind(m_server_address)){
         {

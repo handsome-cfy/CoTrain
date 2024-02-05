@@ -96,7 +96,7 @@ namespace CoTrain
         }
     }
 
-    void LogMannager::debug(LogEvent::ptr event)
+    void LogManager::debug(LogEvent::ptr event)
     {
         std::unique_lock<std::mutex> lock(m_log_mutex);
         
@@ -107,7 +107,7 @@ namespace CoTrain
 
     }
 
-    void LogMannager::info(LogEvent::ptr event)
+    void LogManager::info(LogEvent::ptr event)
     {
         std::unique_lock<std::mutex> lock(m_log_mutex);
 
@@ -117,7 +117,7 @@ namespace CoTrain
         }));
     }
 
-    void LogMannager::warn(LogEvent::ptr event)
+    void LogManager::warn(LogEvent::ptr event)
     {
         std::unique_lock<std::mutex> lock(m_log_mutex);
 
@@ -127,7 +127,7 @@ namespace CoTrain
         }));
     }
 
-    void LogMannager::error(LogEvent::ptr event)
+    void LogManager::error(LogEvent::ptr event)
     {
         std::unique_lock<std::mutex> lock(m_log_mutex);
 
@@ -137,7 +137,7 @@ namespace CoTrain
         }));
     }
 
-    void LogMannager::fatal(LogEvent::ptr event)
+    void LogManager::fatal(LogEvent::ptr event)
     {
         std::unique_lock<std::mutex> lock(m_log_mutex);
 
@@ -147,7 +147,7 @@ namespace CoTrain
         }));
     }
 
-    void CoTrain::LogMannager::init()
+    void CoTrain::LogManager::init()
     {
         m_init_time = time(nullptr);
         m_level = LogLevel::Level::DEBUG;
@@ -189,12 +189,12 @@ namespace CoTrain
         info(CreateEvent("LoggerInited"));
     }
 
-    void LogMannager::setLevel(LogLevel::Level level)
+    void LogManager::setLevel(LogLevel::Level level)
     {
         m_logger->setLevel(level);
     }
 
-    LogEvent::ptr CoTrain::LogMannager::CreateEvent(std::string content)
+    LogEvent::ptr CoTrain::LogManager::CreateEvent(std::string content)
     {
         LogEvent::ptr event = LogEvent::ptr(new LogEvent());
         event->setThreadId(getpid());
@@ -202,7 +202,7 @@ namespace CoTrain
         event->setcontent(content);
         return event;
     }
-    LogMannager::~LogMannager()
+    LogManager::~LogManager()
     {
         {
             std::unique_lock<std::mutex> lock(m_log_mutex);

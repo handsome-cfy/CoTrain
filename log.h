@@ -129,14 +129,14 @@ private:
 };
 
 
-class LogMannager{
+class LogManager{
 public:
-    typedef std::shared_ptr<LogMannager> ptr;
+    typedef std::shared_ptr<LogManager> ptr;
 
     static ptr instance(){
         static ptr m_instance;
         if(!m_instance){
-            m_instance = ptr(new LogMannager());
+            m_instance = ptr(new LogManager());
             m_instance->init();
         }
 
@@ -162,13 +162,13 @@ public:
         ptr->setThreadName(threadname);
         return ptr;
     }
-    ~LogMannager();
+    ~LogManager();
 private:
     //单例设计模式
-    LogMannager(){
+    LogManager(){
     };
-    LogMannager(const LogMannager&) = delete;
-    LogMannager& operator=(const LogMannager&)=delete;
+    LogManager(const LogManager&) = delete;
+    LogManager& operator=(const LogManager&)=delete;
     
     // static ptr m_instance;
     //互斥锁

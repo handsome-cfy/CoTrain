@@ -1,17 +1,18 @@
 #include "config.h"
+#include <iostream>
 
 CoTrain::Config::Config(std::string file_path)
 {
     std::fstream file = std::fstream(file_path);
     if(!file.is_open()){
-        logger->instance();
-        std::stringstream ss;
-        ss << "The file " << file_path << " open failed!";
-        logger->error(
-            logger->CreateEvent(
-                ss.str()
-            )
-        );
+        // logger->instance();
+        // std::stringstream ss;
+        // ss << "The file " << file_path << " open failed!";
+        // logger->error(
+        //     logger->CreateEvent(
+        //         ss.str()
+        //     )
+        // );
         return;
     }
 
@@ -26,3 +27,9 @@ CoTrain::Config::Config(std::string file_path)
     m_data = jsonData;
     file.close();  // 关闭文件
 }
+
+uint32_t CoTrain::ServerNodeConfig::getport()
+{
+    return m_data['ServerPort'];
+}
+

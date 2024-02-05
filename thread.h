@@ -11,6 +11,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include "config/config.h"
 
 namespace CoTrain
 {
@@ -96,6 +97,9 @@ namespace CoTrain
             m_max_thread_number = 20;
             m_stop = false;
         };
+
+        ThreadPool(ServerNodeConfig::ptr config);
+
         ~ThreadPool();
 
         bool getstop();

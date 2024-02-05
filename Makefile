@@ -5,7 +5,7 @@ SRCDIR = .
 OBJDIR = obj
 BINDIR = bin
 
-SRC = $(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/message/*.cpp) $(wildcard $(SRCDIR)/config/*.cpp)
+SRC = $(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/message/*.cpp) $(wildcard $(SRCDIR)/config/*.cpp) $(wildcard $(SRCDIR)/node/*.cpp)
 OBJ = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
 
 TARGETS = $(patsubst $(SRCDIR)/test/%.cpp,$(BINDIR)/%,$(wildcard $(SRCDIR)/test/*.cpp))

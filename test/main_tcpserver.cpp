@@ -1,6 +1,6 @@
 #include "../socket.h"
 #include "../message/messagequeue.h"
-
+#include "../node/node.h"
 #include <iostream>
 using namespace std;
 using namespace CoTrain;
@@ -14,7 +14,7 @@ int main(void)
     TcpServer::ptr server = TcpServer::ptr(new TcpServer());
     // server->Listen(8000);
 
-    LogMannager::ptr logger = LogMannager::instance();
+    LogManager::ptr logger = LogManager::instance();
     // for(int i = 0; i < 30; i++){
     //     pool->enqueue(std::move<Task>(Task(5,[i,logger](){
     //     {
@@ -41,7 +41,7 @@ int main(void)
             {
                 // Semaphore::ptr producer = messagequeue->getsemproducer();
                 // Semaphore::ptr reducer = messagequeue->getsemreduecer();
-                LogMannager::ptr logger = LogMannager::instance();
+                LogManager::ptr logger = LogManager::instance();
                 //
                 
                 while (true)

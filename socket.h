@@ -101,6 +101,7 @@ class Socket{
 public:
     typedef std::shared_ptr<Socket> ptr;
     virtual bool connect(Address::ptr address,uint32_t port) = 0;
+    virtual bool connect() = 0;
     //是否已连接
     bool isconnect(){return b_connect;}
     int getsocketid(){return m_socketid;}
@@ -130,9 +131,11 @@ public:
 
     TcpSocket();
     TcpSocket(int socketid, Address::ptr address);
+    TcpSocket(ClientNodeConfig::ptr config);
 
     //用于连接其他设备
     bool connect(Address::ptr address, uint32_t port) override;
+    bool connect() override;
     bool send(const void* data, size_t size) override;
     bool send(const Message::ptr message) override;
     bool receive(void* buffer, size_t size) override;
@@ -146,6 +149,8 @@ protected:
     Address::ptr m_S_addr;
 
 private:
+    // 判断地址是否是有效的
+    bool is_address_valid = false;
     uint32_t m_port;
     Address::ptr m_C_addr;
 
@@ -172,9 +177,8 @@ public:
     //通过这个方法从网络中获取message
     Message::ptr getMessage();
     void stop();
-    //TODO TcpServer()
     TcpServer();
-
+    TcpServer(ServerNodeConfig::ptr config);
     // 用于一直监听某个端口
     void Listen(uint32_t port);
     void Listen(ThreadPool::ptr pool,uint32_t port);
@@ -197,7 +201,7 @@ private:
 
     TcpListenSocket::ptr m_listen_socket;
 
-    LogMannager::ptr logger;
+    LogManager::ptr logger;
 
     std::string m_threadname="TcpServer";
 

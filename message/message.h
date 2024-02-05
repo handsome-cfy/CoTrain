@@ -39,12 +39,43 @@ public:
     virtual ~Message(){
     }
 
+    /*
+    对于每一个message，都希望有相同的头部内容
+    1-3位：用来表明message的类型
+    4-8位：用来表明message的操作
+    8-16位：用来表明message的大小
+
+    独特id编码，获取是哪台机器的message
+    */
+
+   // 获取和设置消息类型
+    uint16_t getType() const { return m_type; }
+    void setType(uint16_t type) { m_type = type; }
+
+    // 获取和设置消息操作
+    uint16_t getOperation() const { return m_operation; }
+    void setOperation(uint16_t operation) { m_operation = operation; }
+
+    // 获取和设置消息大小
+    uint16_t getSize() const { return m_size; }
+    void setSize(uint16_t size) { m_size = size; }
+
+    // 获取和设置独特ID编码
+    uint16_t getUniqueID() const { return m_uniqueID; }
+    void setUniqueID(uint16_t uniqueID) { m_uniqueID = uniqueID; }
+
 protected:
+    uint16_t m_type;      // 消息类型
+    uint16_t m_operation; // 消息操作
+    uint16_t m_size;      // 消息大小
+    uint16_t m_uniqueID;  // 独特ID编码
+
+
     void * m_data;
     Bufptr m_buf;
     UniqueID::ptr m_uniqueid;
     constexpr static uint16_t max_buf_len = 1500;
-    uint16_t m_size;
+    // uint16_t m_size;
 
 };
 //  带有一个缓冲区的message，设计用来传递数据
