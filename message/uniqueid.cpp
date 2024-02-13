@@ -28,6 +28,17 @@ void CoTrain::SnowFlakeID::decode()
     
 }
 
+void SnowFlakeID::decode(uint64_t code)
+{
+        // 解析 Snowflake ID
+    uint64_t snowflakeId = code;
+
+    // 提取时间戳、工作节点 ID 和序列号
+    timestamp = (snowflakeId >> timestampShift) + epoch;
+    workerId = (snowflakeId >> workerIdShift) & ((1ULL << workerIdBits) - 1);
+    sequence = snowflakeId & sequenceMask;
+}
+
 uint64_t CoTrain::SnowFlakeID::getTimeStamp()
 {
     auto now = std::chrono::system_clock::now();

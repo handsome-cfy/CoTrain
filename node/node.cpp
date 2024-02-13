@@ -13,6 +13,15 @@ CoTrain::ServerNode::ServerNode(ServerNodeConfig::ptr config, bool start)
         m_messagequeue->start_on_threadpool(m_threadpool,config->getport());
     }
 }
+void ServerNode::alivenode(uint64_t machineid)
+{
+    ConnectedNode::ptr node = m_id2node[machineid];
+    node->alive_count_increase();
+}
+void ServerNode::addTask(Task::ptr val)
+{
+    m_threadpool->enqueue(*val);
+}
 bool ClientNode::isconnect()
 {
     return false;
@@ -36,5 +45,35 @@ void ClientNode::alive()
         m_socket->send(alivemessage);
 
     }
+}
+void ConnectedNode::AliveCount()
+{
+    uint16_t count = 1;
+    while(count > -1){
+        {
+            std::unique_lock<std::mutex> lock(m_alive_mutex);
+            m_alive_count--;
+            count = m_alive_count;
+        }
+        // 每3秒检查一次
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+    }
+    // alive失效了
+    setvalid(false);
+}
+bool ConnectedNode::getvalid()
+{
+    std::unique_lock<std::mutex> lock(m_valid_mutex);
+    return b_valid;
+}
+void ConnectedNode::setvalid(bool val)
+{
+    std::unique_lock<std::mutex> lock(m_valid_mutex);
+    b_valid = val;
+}
+void ConnectedNode::alive_count_increase()
+{
+    std::unique_lock<std::mutex> lock(m_alive_mutex);
+    m_alive_count++;
 }
 }

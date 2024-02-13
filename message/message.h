@@ -60,8 +60,8 @@ public:
     void setSize(uint16_t size) { m_size = size; }
 
     // 获取和设置独特ID编码
-    uint16_t getUniqueID() const { return m_uniqueID; }
-    void setUniqueID(uint16_t uniqueID) { m_uniqueID = uniqueID; }
+    uint64_t getUniqueID() const { return m_uniqueID; }
+    void setUniqueID(uint64_t uniqueID) { m_uniqueID = uniqueID; }
 
     void encodeHead();
     void decodeHead();
@@ -113,6 +113,9 @@ public:
         strcpy(buf+1,s_port.c_str());
         m_data = static_cast<void *>(buf);
     }
+
+    ComMessageType::ComType getComtype(){return m_messagetype;}
+    
     ComMessage(ComMessageType::ComType type, uint64_t uniqueID);
     ComMessage();
     ~ComMessage();

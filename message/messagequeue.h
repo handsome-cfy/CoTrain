@@ -12,7 +12,7 @@ public:
     //把消息队列机制创建在线程池子上
     bool start_on_threadpool(ThreadPool::ptr threadpool, uint32_t port);
 
-    void process_com_message(ThreadPool::ptr threadpool);
+    // void process_com_message(ThreadPool::ptr threadpool);
 
     void push(Message::ptr message);
     Message::ptr pop();

@@ -47,35 +47,6 @@ bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool, uint
     return false;
 }
 
-void MessageQueue::process_com_message(ThreadPool::ptr threadpool)
-{
-    threadpool->addLoopThread(
-        Thread::ptr(new Thread("Reducer",
-            [this, threadpool]()
-            {
-                // Semaphore::ptr producer = messagequeue->getsemproducer();
-                // Semaphore::ptr reducer = messagequeue->getsemreduecer();
-                LogManager::ptr logger = LogManager::instance();
-                //
-                
-                while (true)
-                {
-                    // reducer->wait();
-                    ComMessage::ptr message = this->pop();
-                    // producer->notify();
-
-                    // std::cout << "this is reducer" << endl;
-                    logger->debug(
-                        logger->CreateEvent(
-                            std::string((char *)(message->getdata()),message->getsize())));
-
-                    message->decodeHead();
-
-                    
-                }
-            })));
-}
-
 void CoTrain::MessageQueue::push(Message::ptr message)
 {
     m_sem_producer->wait();

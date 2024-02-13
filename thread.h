@@ -56,6 +56,8 @@ namespace CoTrain
     class Task
     {
     public:
+        typedef std::shared_ptr<Task> ptr;
+
         int priority;
         std::function<void()> callback;
         // template <typename Callable, typename... Args>

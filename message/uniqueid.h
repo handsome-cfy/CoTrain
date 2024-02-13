@@ -33,6 +33,8 @@ class SnowFlakeID : public UniqueID{
 public:
     uint64_t encode() override;
     void decode() override;
+    void decode(uint64_t code);
+    SnowFlakeID(){}
     SnowFlakeID(uint64_t _machineID):
         workerId(_machineID),
         sequence(0),
