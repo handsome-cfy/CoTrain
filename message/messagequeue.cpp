@@ -18,6 +18,7 @@ bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool, uint
                         // logger->debug(
                         // logger->CreateEvent(
                         //     "This is messagequeue Thead"));
+                        std::cout << "messagequeue here" << std::endl;
                         //线程安全
                         std::unique_lock<std::mutex> lock(this->m_mutex);
                         if(m_tcp_server != nullptr){
@@ -32,6 +33,8 @@ bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool, uint
                                 m_tcp_server->stop();
                                 m_sem_stop->notify();
                                 return;
+                            }else{
+                                std::this_thread::sleep_for(std::chrono::seconds(1));
                             }
 
                         }
@@ -42,6 +45,35 @@ bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool, uint
         ))
     );
     return false;
+}
+
+void MessageQueue::process_com_message(ThreadPool::ptr threadpool)
+{
+    threadpool->addLoopThread(
+        Thread::ptr(new Thread("Reducer",
+            [this, threadpool]()
+            {
+                // Semaphore::ptr producer = messagequeue->getsemproducer();
+                // Semaphore::ptr reducer = messagequeue->getsemreduecer();
+                LogManager::ptr logger = LogManager::instance();
+                //
+                
+                while (true)
+                {
+                    // reducer->wait();
+                    ComMessage::ptr message = this->pop();
+                    // producer->notify();
+
+                    // std::cout << "this is reducer" << endl;
+                    logger->debug(
+                        logger->CreateEvent(
+                            std::string((char *)(message->getdata()),message->getsize())));
+
+                    message->decodeHead();
+
+                    
+                }
+            })));
 }
 
 void CoTrain::MessageQueue::push(Message::ptr message)

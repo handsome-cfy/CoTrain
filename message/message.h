@@ -22,11 +22,10 @@ public:
     typedef std::shared_ptr<Message> ptr;
     typedef std::unique_ptr<void,BufDelete> Bufptr;
 
+    std::string showheader();
+
     void* getdata(){return m_data;}
     void setdata(void* val){m_data = val;}
-
-    void setID(UniqueID::ptr val){m_uniqueid = val;}
-    UniqueID::ptr getID(){return m_uniqueid;}
 
     uint16_t getmaxsize(){return max_buf_len;}
     uint16_t getsize(){return m_size;}
@@ -64,16 +63,21 @@ public:
     uint16_t getUniqueID() const { return m_uniqueID; }
     void setUniqueID(uint16_t uniqueID) { m_uniqueID = uniqueID; }
 
+    void encodeHead();
+    void decodeHead();
+
+    void addMessageEnd();
+
 protected:
     uint16_t m_type;      // 消息类型
     uint16_t m_operation; // 消息操作
     uint16_t m_size;      // 消息大小
-    uint16_t m_uniqueID;  // 独特ID编码
+    uint64_t m_uniqueID;  // 独特ID编码
 
 
     void * m_data;
     Bufptr m_buf;
-    UniqueID::ptr m_uniqueid;
+
     constexpr static uint16_t max_buf_len = 1500;
     // uint16_t m_size;
 
@@ -92,6 +96,7 @@ public:
     typedef std::shared_ptr<ComMessageType> ptr;
     enum ComType{
         CONNECT,
+        AlIVE,
         CLOSE,
     };
 };
@@ -99,7 +104,7 @@ public:
 //  用于构建分布式系统的message
 class ComMessage: public Message{
 public:
-    ComMessage(uint32_t port){
+    ComMessage(ComMessageType::ComType type,uint32_t port){
         m_messagetype = ComMessageType::ComType::CONNECT;
         // char * buf = static_cast<char *>(m_data);
         char buf[max_com_len] = "";
@@ -107,13 +112,13 @@ public:
         std::string s_port = std::to_string(port);
         strcpy(buf+1,s_port.c_str());
         m_data = static_cast<void *>(buf);
-
     }
+    ComMessage(ComMessageType::ComType type, uint64_t uniqueID);
     ComMessage();
     ~ComMessage();
 private:
     ComMessageType::ComType m_messagetype;
-    constexpr static uint16_t max_com_len = 150;
+    constexpr static uint16_t max_com_len = 50;
 };
 
 

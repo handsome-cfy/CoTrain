@@ -1,6 +1,7 @@
 #include "uniqueid.h"
 
-char *CoTrain::SnowFlakeID::encode()
+namespace CoTrain{
+uint64_t CoTrain::SnowFlakeID::encode()
 {
     uint64_t currentTimestamp = getTimeStamp();
 
@@ -12,11 +13,19 @@ char *CoTrain::SnowFlakeID::encode()
     // Store the Snowflake ID in the m_id buffer
     snprintf(m_id, idBufferSize, "%llu", snowflakeId);
 
-    return m_id;
+    return snowflakeId;
 }
 
 void CoTrain::SnowFlakeID::decode()
 {
+    // 解析 Snowflake ID
+    uint64_t snowflakeId = std::stoull(m_id);
+
+    // 提取时间戳、工作节点 ID 和序列号
+    timestamp = (snowflakeId >> timestampShift) + epoch;
+    workerId = (snowflakeId >> workerIdShift) & ((1ULL << workerIdBits) - 1);
+    sequence = snowflakeId & sequenceMask;
+    
 }
 
 uint64_t CoTrain::SnowFlakeID::getTimeStamp()
@@ -29,4 +38,21 @@ uint64_t CoTrain::SnowFlakeID::getTimeStamp()
 
 CoTrain::UniqueID::~UniqueID()
 {
+}
+
+UniqueID::ptr CoTrain::UniqueIDMananger::generateID()
+{
+    UniqueID::ptr id = nullptr;
+    switch (m_type)
+    {
+    case IDtype::SnowFlake:
+        id = SnowFlakeID::ptr(new SnowFlakeID(m_workerId));
+        break;
+    
+    default:
+        break;
+    }
+    return id;
+}
+
 }

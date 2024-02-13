@@ -6,7 +6,10 @@ using namespace std;
 
 int main(void){
     ClientNodeConfig::ptr config = ClientNodeConfig::ptr(new ClientNodeConfig("/Users/chenfeiyang/Documents/vscode/cfyserver/setting/ClientNode.json"));
-    ClientNode::ptr client = ClientNode::ptr(new ClientNode(config));
-
+    ClientNode::ptr client = std::make_shared<ClientNode>(config);    
+    client->connect();
+    client->alive();
+    cout << config->getMachineID() << endl;
+    
     return 0;
 }

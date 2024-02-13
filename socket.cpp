@@ -60,6 +60,7 @@ TcpSocket::TcpSocket(int socketid, Address::ptr address)
 
 TcpSocket::TcpSocket(ClientNodeConfig::ptr config)
 {
+    m_socketid = socket(AF_INET,SOCK_STREAM,0);
     std::string ip  = config->getServerIP();
     uint32_t port = config->getServerPort();
     m_C_addr = IPV4Address::ptr(new IPV4Address(ip));
@@ -128,30 +129,53 @@ bool TcpSocket::send(const void *data, size_t size)
 bool TcpSocket::send(const Message::ptr message)
 {
     //TODO: 完成从信息到传输数据的编码
-    return false;
+
+    return send(message->getdata(),message->getsize());
+    // return false;
 }
 
 bool TcpSocket::receive(void *buffer, size_t size)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     if (b_connect && m_socketid != -1) {
-            int receivedBytes = recv(m_socketid, buffer, size, 0);
-            if (receivedBytes == -1) {
-                //TODO 接收失败的处理
-                return false;
-            }
-            //TODO 接收成功的处理
-            return true;
-        }
-        else {
+        // 设置超时时间为5秒
+        struct timeval timeout;
+        timeout.tv_sec = 5;
+        timeout.tv_usec = 0;
+        if (setsockopt(m_socketid, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+            perror("setsockopt failed");
+            // 错误处理
             return false;
         }
+
+        int receivedBytes = recv(m_socketid, buffer, size, 0);
+        if (receivedBytes == -1) {
+            // 接收失败的处理
+            int errorCode = errno;
+            if (errorCode == EAGAIN || errorCode == EWOULDBLOCK) {
+                std::cerr << "No data available to receive. Retry later." << std::endl;
+                // 重新尝试接收或使用其他处理方法
+            } else {
+                std::cerr << "recv failed with error code: " << errorCode << std::endl;
+                perror("recv failed");
+                // 处理其他错误
+            }
+            return false;
+        }else if (receivedBytes == 0){
+            b_connect = false;
+        }
+        // 接收成功的处理
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 Message::ptr TcpSocket::receive()
 {  
     
-    Message::ptr message = Message::ptr(new BufMessage());
+    Message::ptr message = Message::ptr(new ComMessage());
     uint16_t size = message->getsize();
     if(receive(message->getdata(),size)){
         return message;
@@ -185,6 +209,12 @@ Message::ptr TcpServer::getMessage()
         m_pos = (m_pos + 1)%(m_socket_list.size());
         if(socket->isconnect()){
             return socket->receive();
+        }else{
+            m_pos = m_pos - 1;
+            auto it = std::find(m_socket_list.begin(), m_socket_list.end(), socket);
+            if (it != m_socket_list.end()) {
+                m_socket_list.erase(it);
+            }
         }
     }
     return Message::ptr();

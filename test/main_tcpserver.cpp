@@ -34,8 +34,7 @@ int main(void)
     // }
 
     MessageQueue::ptr messagequeue = MessageQueue::ptr(new MessageQueue());
-    messagequeue->start_on_threadpool(pool, 8000);
-    pool->addLoopThread(
+        pool->addLoopThread(
         Thread::ptr(new Thread("Reducer",
             [messagequeue, pool]()
             {
@@ -55,9 +54,11 @@ int main(void)
                     // std::cout << "this is reducer" << endl;
                     logger->debug(
                         logger->CreateEvent(
-                            string((char *)(message->getdata()))));
+                            string((char *)(message->getdata()),message->getsize())));
                 }
             })));
+    messagequeue->start_on_threadpool(pool, 8000);
+
     
     while(true);
 }

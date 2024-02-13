@@ -11,7 +11,8 @@ public:
     typedef std::shared_ptr<Node> ptr;
     
     Node(){}
-    // virtual Node(Config::ptr config);
+    Node(Config::ptr config){}
+    ~Node(){}
     
     //来判断当前这个节点是否连接
     virtual bool isconnect()=0;
@@ -27,7 +28,7 @@ public:
     ServerNode(ServerNodeConfig::ptr config,bool start=false);
     ~ServerNode(){};
 
-
+    // bool alive();
 private:
     // 拥有一个消息队列来处理操作
     MessageQueue::ptr m_messagequeue;
@@ -40,13 +41,31 @@ private:
 
 class ClientNode : public Node{
 public:
+    typedef std::shared_ptr<ClientNode> ptr;
     ClientNode(){}
-    ClientNode(ClientNodeConfig::ptr config);
+    ClientNode(ClientNodeConfig::ptr config):Node(config){
+    m_socket = TcpSocket::ptr(new TcpSocket(config));
 
-    bool isconnect() override;
+    m_machineID = config->getMachineID();
+    m_idmananger = UniqueIDMananger::ptr(new UniqueIDMananger(UniqueIDMananger::IDtype::SnowFlake,m_machineID));
+    }
+
+    bool  isconnect() override;
     bool connect();
+
+    void alive();
+
+
 private:
+    bool m_stop = false;
+
     TcpSocket::ptr m_socket;
+    // 控制生成id
+    UniqueIDMananger::ptr m_idmananger;
+    // 机器的名称
+    uint64_t m_machineID;
+
+
 };
 }
 #endif
