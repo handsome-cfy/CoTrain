@@ -69,6 +69,7 @@ public:
     void addMessageEnd();
 
 protected:
+    // 如果这个值为0，则为buf消息
     uint16_t m_type;      // 消息类型
     uint16_t m_operation; // 消息操作
     uint16_t m_size;      // 消息大小
@@ -87,6 +88,7 @@ class BufMessage: public Message{
 public:
     void showdata();
     BufMessage();
+    BufMessage(uint64_t size);
     ~BufMessage();
 
 };
@@ -95,9 +97,11 @@ class ComMessageType{
 public:
     typedef std::shared_ptr<ComMessageType> ptr;
     enum ComType{
-        CONNECT,
+        CONNECT=1,
         AlIVE,
         CLOSE,
+        // 用来告诉要等待一个bufmessage
+        FILE,
     };
 };
 
@@ -117,11 +121,24 @@ public:
     ComMessageType::ComType getComtype(){return m_messagetype;}
     
     ComMessage(ComMessageType::ComType type, uint64_t uniqueID);
+    ComMessage(ComMessageType::ComType type, uint64_t uniqueID, uint64_t bufsize);
     ComMessage();
     ~ComMessage();
+
+    uint64_t getFileSize() const {
+        if (m_messagetype == ComMessageType::ComType::FILE) {
+            return m_filesize;
+        } else {
+            return 0;
+        }
+    }
+
 private:
     ComMessageType::ComType m_messagetype;
     constexpr static uint16_t max_com_len = 50;
+    
+    // 当type是File的时候有效，表明传递的信息
+    uint64_t m_filesize = 0;
 };
 
 

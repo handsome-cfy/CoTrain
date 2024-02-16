@@ -1,4 +1,6 @@
 {
     "MaxPoolThreadNumber":20,
-    "MaxMessageQueueLength":20
+    "MaxMessageQueueLength":20,
+    "ServerComPort":8000,
+    "ServerFilePort":8001
 }

@@ -33,8 +33,14 @@ private:
 class ServerNodeConfig : public Config{
 public:
     typedef std::shared_ptr<ServerNodeConfig> ptr;
-    uint32_t getport();
+    uint32_t getComport(){return m_data["ServerComPort"];}
     uint16_t getMaxThreadNumber(){return m_data["MaxPoolThreadNumber"];}
+    uint32_t getfileport(){return m_data["ServerFilePort"];}
+
+    void fitconfig()const override{}
+    bool saveconfig(std::string file_path) override{}
+
+    ServerNodeConfig(std::string filepath) : Config(filepath){}
 private:
     
 };
@@ -47,7 +53,7 @@ public:
     std::string getServerIP(){return m_data["ServerIP"];}
     uint32_t getServerPort(){return m_data["ServerPort"];}
     uint64_t getMachineID(){return m_data["MachineID"];}
-
+    uint32_t getFilePort(){return m_data["ServerFilePort"];}
     ClientNodeConfig(std::string filepath) : Config(filepath){
 
     }

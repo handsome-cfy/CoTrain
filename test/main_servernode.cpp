@@ -5,8 +5,12 @@ using namespace CoTrain;
 using namespace std;
 
 int main(void){
-    ClientNodeConfig::ptr config = ClientNodeConfig::ptr(new ClientNodeConfig("/Users/chenfeiyang/Documents/vscode/cfyserver/setting/ClientNode.json"));
-    ClientNode::ptr client = ClientNode::ptr(new ClientNode(config));
+    ServerNodeConfig::ptr config = ServerNodeConfig::ptr(new ServerNodeConfig("/Users/chenfeiyang/Documents/vscode/cfyserver/setting/ServerNode.json"));
+    ServerNode::ptr server = ServerNode::ptr(new ServerNode(config,true));
 
+    server->proccess();
+    while(true){
+        ;
+    }
     return 0;
 }

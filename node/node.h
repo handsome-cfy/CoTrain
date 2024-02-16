@@ -3,6 +3,7 @@
 
 #include"../message/messagequeue.h"
 #include"../socket.h"
+// #include"task.h"
 
 namespace CoTrain{
 
@@ -15,7 +16,7 @@ public:
     ~Node(){}
     
     //来判断当前这个节点是否连接
-    virtual bool isconnect()=0;
+    // virtual bool isconnect()=0;
 
     uint64_t getmachineID(){return m_machineID;}
     void setmachineID(uint64_t var){m_machineID = var;}
@@ -30,6 +31,7 @@ public:
     typedef std::shared_ptr<ConnectedNode> ptr;
 
     ConnectedNode(TcpSocket::ptr socket): m_socket(socket){}
+    ConnectedNode(uint64_t workerid): m_workerid(workerid){}
 
     // 用来实现alive的计数功能
     void AliveCount();
@@ -56,6 +58,9 @@ private:
     // alive count 的最大值
     constexpr static uint16_t MAX_ALIVE_COUNT = 16;
 
+    //  workerid
+    uint64_t m_workerid;
+
 };
 
 // 服务端的节点
@@ -75,14 +80,34 @@ public:
 
     // 增加任务到线程池（必须不是循环任务）
     void addTask(Task::ptr val);
+
+    // 增加一个连接上的节点
+    void addConnectedNode(uint64_t machineid, ConnectedNode::ptr node);
+
+    // 得到消息队列中的Com消息
+    ComMessage::ptr getComMessage(){return m_messagequeue->pop();}
+
+    // 接受分块文件
+    void* receiveFile(std::string filepath);
+
+    // 处理消息队列中的信息
+    void ProcessMessage(Message::ptr message);
+
+    // loop to proccess
+    void proccess();
 private:
     // 拥有一个消息队列来处理操作
     MessageQueue::ptr m_messagequeue;
+    // 拥有一个消息队列来接受文件
+    MessageQueue::ptr m_filequeue;
     // 拥有一个线程池来处理计算任务
     ThreadPool::ptr m_threadpool;
+
     // 拥有一个map来保存当前已经连接的节点
     std::map<uint64_t,ConnectedNode::ptr> m_id2node;
-    // // 用来生成服务器的任务
+    // 节点map的锁
+    std::mutex m_nodeset_mutex;
+    // 用来生成服务器的任务
     // TaskFactory::ptr m_taskfactory;
 };
 
@@ -96,23 +121,32 @@ public:
 
     m_machineID = config->getMachineID();
     m_idmananger = UniqueIDMananger::ptr(new UniqueIDMananger(UniqueIDMananger::IDtype::SnowFlake,m_machineID));
+    
+    m_fileport = config->getFilePort();
     }
 
-    bool  isconnect() override;
+    // bool  isconnect() override;
     bool connect();
 
     void alive();
+
+    //发送comtype为file的message
+    void File();
+    bool sendfile(std::string filepath);
 
 
 private:
     bool m_stop = false;
 
+    std::mutex m_socket_mutex;
     TcpSocket::ptr m_socket;
     // 控制生成id
     UniqueIDMananger::ptr m_idmananger;
     // 机器的名称
     uint64_t m_machineID;
 
+    // 文件服务器的端口
+    uint32_t m_fileport=8001;
 
 };
 }

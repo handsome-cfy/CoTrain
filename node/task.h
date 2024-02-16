@@ -53,36 +53,18 @@ public:
     TaskFactory(){}
 
     // 对于服务端而言，这里是获取到ComMessage之后产生对应的Task，用来处理
-    void MakeTask(ComMessage::ptr message, ServerNode::ptr servernode){
+    void MakeTask(Message::ptr message, ServerNode::ptr servernode);    
+    // 重载函数，专门用来处理与socket相关的任务
+    // void MakeTask(ComMessage::ptr message, ServerNode::ptr servernode, TcpSocket::ptr socket);
 
-        Task::ptr task = nullptr;   
-        ComMessageType::ComType type = ComMessageType::ComType(message->getType());
+    void ProcessMessage(ServerNode::ptr servernode);
 
-        switch (type)
-        {
-        case ComMessageType::ComType::AlIVE:
-            task =  Task::ptr(new Task(5,[servernode,message](){
-                SnowFlakeID id;
-                id.decode(message->getUniqueID());
-                // 获取是哪个一个字节点发来的alive信息
-                uint64_t worker_id = id.getWorkerId();
-                servernode->alivenode(worker_id);
-            }));
-            
-            break;
-        
-        default:
-            break;
-        }
-
-        // return nullptr;
-        if(task){
-            servernode->addTask(task);
-        }
-    }
-    
-
+    bool getstop();
+    void setstop(bool val);
 private:
+    // 是否结束
+    std::mutex m_stop_mutex;
+    bool m_stop = false;
 
 };
 

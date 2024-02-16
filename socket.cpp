@@ -70,6 +70,26 @@ TcpSocket::TcpSocket(ClientNodeConfig::ptr config)
     is_address_valid = true;
 }
 
+TcpSocket::TcpSocket(const TcpSocket::ptr other){
+    // 复制基本类型成员变量
+    b_connect = other->b_connect;
+    timeoutInSeconds = other->timeoutInSeconds;
+
+    // 复制指针类型成员变量
+    m_S_addr = other->m_S_addr;
+    m_C_addr = other->m_C_addr;
+
+    // 创建一个新的socketid
+    m_socketid = socket(AF_INET, SOCK_STREAM, 0);
+
+    is_address_valid = other->is_address_valid;
+}
+
+TcpSocket::ptr TcpSocket::operator=(const TcpSocket::ptr other)
+{
+    return TcpSocket::ptr(new TcpSocket(other));
+}
+
 bool TcpSocket::connect()
 {
     if(is_address_valid){
@@ -126,6 +146,14 @@ bool TcpSocket::send(const void *data, size_t size)
     }
 }
 
+bool TcpSocket::connect(uint32_t port)
+{
+    if(is_address_valid){
+        return this->connect(m_C_addr,port);
+    }
+    return false;
+}
+
 bool TcpSocket::send(const Message::ptr message)
 {
     //TODO: 完成从信息到传输数据的编码
@@ -138,15 +166,15 @@ bool TcpSocket::receive(void *buffer, size_t size)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     if (b_connect && m_socketid != -1) {
-        // 设置超时时间为5秒
-        struct timeval timeout;
-        timeout.tv_sec = 5;
-        timeout.tv_usec = 0;
-        if (setsockopt(m_socketid, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
-            perror("setsockopt failed");
-            // 错误处理
-            return false;
-        }
+        // // 设置超时时间为5秒
+        // struct timeval timeout;
+        // timeout.tv_sec = 5;
+        // timeout.tv_usec = 0;
+        // if (setsockopt(m_socketid, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+        //     perror("setsockopt failed");
+        //     // 错误处理
+        //     return false;
+        // }
 
         int receivedBytes = recv(m_socketid, buffer, size, 0);
         if (receivedBytes == -1) {
@@ -172,12 +200,35 @@ bool TcpSocket::receive(void *buffer, size_t size)
     }
 }
 
-Message::ptr TcpSocket::receive()
+Message::ptr TcpSocket::receive(bool isFixedSize)
 {  
-    
-    Message::ptr message = Message::ptr(new ComMessage());
-    uint16_t size = message->getsize();
-    if(receive(message->getdata(),size)){
+    if(isFixedSize){
+        Message::ptr message = Message::ptr(new ComMessage());
+        uint16_t size = message->getsize();
+        if(receive(message->getdata(),size)){
+            return message;
+        }
+    }else{
+        // 首先接收消息的大小
+        uint16_t size;
+        if (!receive(reinterpret_cast<char*>(&size), sizeof(uint16_t))) {
+            return nullptr;
+        }
+        Message::ptr message = Message::ptr(new BufMessage(size));
+        // 根据大小分块接收消息内容
+        uint16_t receivedSize = 0;
+        while (receivedSize < size) {
+            uint16_t remainingSize = size - receivedSize;
+            uint16_t chunkSize = std::min(remainingSize, static_cast<uint16_t>(MAX_CHUNK_SIZE));
+
+            if (!receive((char *)(message->getdata()) + receivedSize, chunkSize)) {
+                return nullptr;
+            }
+
+            receivedSize += chunkSize;
+        }
+
+        message->setsize(size);
         return message;
     }
 
@@ -202,13 +253,13 @@ bool TcpSocket::bind(const Address::ptr address)
     return false;
 }
 
-Message::ptr TcpServer::getMessage()
+Message::ptr TcpServer::getMessage(bool isBuf)
 {
     if(m_socket_list.size()>0){
         auto socket = m_socket_list[m_pos];
         m_pos = (m_pos + 1)%(m_socket_list.size());
         if(socket->isconnect()){
-            return socket->receive();
+            return socket->receive(!isBuf);
         }else{
             m_pos = m_pos - 1;
             auto it = std::find(m_socket_list.begin(), m_socket_list.end(), socket);

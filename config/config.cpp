@@ -27,9 +27,3 @@ CoTrain::Config::Config(std::string file_path)
     m_data = jsonData;
     file.close();  // 关闭文件
 }
-
-uint32_t CoTrain::ServerNodeConfig::getport()
-{
-    return m_data['ServerPort'];
-}
-

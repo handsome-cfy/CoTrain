@@ -7,10 +7,12 @@ CoTrain::ServerNode::ServerNode(ServerNodeConfig::ptr config, bool start)
     m_threadpool = ThreadPool::ptr(new ThreadPool(config));
 
     m_messagequeue = MessageQueue::ptr(new MessageQueue(config));
+    m_filequeue = MessageQueue::ptr(new MessageQueue(config));
 
     if(start){
         //  依据config文件设置监听的端口
-        m_messagequeue->start_on_threadpool(m_threadpool,config->getport());
+        m_messagequeue->start_on_threadpool(m_threadpool,config->getComport());
+        m_filequeue->start_on_threadpool(m_threadpool,config->getfileport());
     }
 }
 void ServerNode::alivenode(uint64_t machineid)
@@ -22,9 +24,97 @@ void ServerNode::addTask(Task::ptr val)
 {
     m_threadpool->enqueue(*val);
 }
-bool ClientNode::isconnect()
+void ServerNode::addConnectedNode(uint64_t machineid, ConnectedNode::ptr node)
 {
-    return false;
+    std::unique_lock<std::mutex> lock(m_nodeset_mutex);
+    m_id2node.insert(std::make_pair(machineid,node));
+}
+void *ServerNode::receiveFile(std::string filepath)
+{
+    // std::ofstream file(filepath, std::ios::binary);
+    // if (file.is_open()) {
+    //     // 接收文件大小
+    //     uint64_t fileSize;
+    //     m_socket->receive(&fileSize, sizeof(fileSize));
+
+    //     // 创建一个缓冲区来接收文件内容
+    //     const int bufferSize = 1024; // 缓冲区大小
+    //     char buffer[bufferSize];
+
+    //     // 分块接收文件内容
+    //     while (fileSize > 0) {
+    //         int chunkSize = std::min(fileSize, static_cast<uint64_t>(bufferSize));
+    //         m_socket->receive(buffer, chunkSize);
+    //         file.write(buffer, chunkSize);
+    //         fileSize -= chunkSize;
+    //     }
+
+    //     // 关闭文件
+    //     file.close();
+
+    //     // return true;
+    // }
+    // // return false;
+    return nullptr;
+}
+void ServerNode::ProcessMessage(Message::ptr message)
+{
+    message->decodeHead();
+    Task::ptr task = nullptr;
+    // bufmessage
+    if(message->getType()==0){
+        BufMessage::ptr bufM = BufMessage::ptr(message);
+    }else{//commessage
+        ComMessage::ptr comM = ComMessage::ptr(message);
+        ComMessageType::ComType type = ComMessageType::ComType(comM->getType());
+            switch (type)
+            {
+            case ComMessageType::ComType::AlIVE:
+                /* code */
+                task = Task::ptr(new  Task(5,
+                    [message,this](){
+                        SnowFlakeID id;
+                        id.decode(message->getUniqueID());
+                        uint64_t workerid = id.getWorkerId();
+                        this->alivenode(workerid);
+                    }
+                ));
+                break;
+            case ComMessageType::ComType::CONNECT:
+            
+                task = Task::ptr(new Task(1,
+                [message,this](){
+                    SnowFlakeID id;
+                    id.decode(message->getUniqueID());
+                    uint64_t workerid = id.getWorkerId();
+
+                    ConnectedNode::ptr node = ConnectedNode::ptr(new ConnectedNode(workerid));
+                    this->addConnectedNode(workerid,node);
+
+                }
+                ));
+                break;
+
+            case ComMessageType::ComType::FILE:
+                m_filequeue->addBufMessageToReceive();
+                break;
+            default:
+                break;
+            }
+
+            if(task){
+                addTask(task);
+            }
+    }
+}
+void ServerNode::proccess()
+{
+    m_threadpool->addLoopThread(
+        Thread::ptr(new Thread("ServerProccess",
+        [this](){
+            ProcessMessage(this->m_messagequeue->pop());
+        }))
+    );
 }
 bool ClientNode::connect()
 {
@@ -45,6 +135,58 @@ void ClientNode::alive()
         m_socket->send(alivemessage);
 
     }
+}
+void ClientNode::File()
+{
+    ComMessage::ptr filemessage = ComMessage::ptr(new ComMessage(
+        ComMessageType::ComType::FILE,m_idmananger->generateID()->encode()
+    ));
+    // std::cout << m_idmananger->generateID()->encode() << std::endl;
+    // std::cout << std::string((char *)(filemessage->getdata()), filemessage->getsize()) << std::endl;
+    std::cout << "here is the file" << std::endl;
+
+    m_socket->send(filemessage);
+}
+bool ClientNode::sendfile(std::string filepath)
+{
+    
+    std::ifstream file(filepath, std::ios::binary);
+
+    if (file.is_open()) {
+
+        this->File();
+
+        // 获取文件大小
+        file.seekg(0, std::ios::end);
+        uint64_t fileSize = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        // 创建一个缓冲区来存储文件内容
+        const int bufferSize = 1024; // 缓冲区大小
+        char buffer[bufferSize];
+
+        // 使用一个单独的socket连接将文件内容发送给服务器
+        TcpSocket::ptr fileSocket = TcpSocket::ptr(new TcpSocket(m_socket));
+        
+        fileSocket->connect(m_fileport);
+        fileSocket->send(&fileSize, sizeof(fileSize)); // 发送文件大小
+
+        // 分块发送文件内容
+        while (fileSize > 0) {
+            int chunkSize = std::min(fileSize, static_cast<uint64_t>(bufferSize));
+            file.read(buffer, chunkSize);
+            fileSocket->send(buffer, chunkSize);
+            fileSize -= chunkSize;
+        }
+
+        // 关闭文件
+        file.close();
+
+        fileSocket->disconnect();
+
+        return true;
+    }
+    return false;
 }
 void ConnectedNode::AliveCount()
 {

@@ -112,7 +112,7 @@ public:
     virtual bool send(const Message::ptr message) = 0;
 
     virtual bool receive(void* buffer, size_t size) = 0;
-    virtual Message::ptr receive() = 0;
+    virtual Message::ptr receive(bool FixedSize=true) = 0;
 
     virtual bool bind(const Address::ptr address) = 0;
 
@@ -128,18 +128,23 @@ protected:
 
 class TcpSocket : public Socket{
 public:
+    typedef std::shared_ptr<TcpSocket> ptr;
 
     TcpSocket();
     TcpSocket(int socketid, Address::ptr address);
     TcpSocket(ClientNodeConfig::ptr config);
 
+    TcpSocket(const TcpSocket::ptr other);
+    TcpSocket::ptr operator=(const TcpSocket::ptr other);
+
     //用于连接其他设备
     bool connect(Address::ptr address, uint32_t port) override;
     bool connect() override;
+    bool connect(uint32_t port);
     bool send(const void* data, size_t size) override;
     bool send(const Message::ptr message) override;
     bool receive(void* buffer, size_t size) override;
-    Message::ptr receive() override;
+    Message::ptr receive(bool FixedSize=true) override;
     void disconnect() override;
     bool bind(const Address::ptr address) override;
 
@@ -147,7 +152,7 @@ public:
 
 protected:
     Address::ptr m_S_addr;
-
+    constexpr static uint64_t MAX_CHUNK_SIZE = 1500;
 private:
     // 判断地址是否是有效的
     bool is_address_valid = false;
@@ -156,7 +161,6 @@ private:
 
     //超时时间
     int timeoutInSeconds = 5;
-
 
 };
 
@@ -175,7 +179,7 @@ class TcpServer{
 public:
     typedef std::shared_ptr<TcpServer> ptr;
     //通过这个方法从网络中获取message
-    Message::ptr getMessage();
+    Message::ptr getMessage(bool isBuf=false);
     void stop();
     TcpServer();
     TcpServer(ServerNodeConfig::ptr config);

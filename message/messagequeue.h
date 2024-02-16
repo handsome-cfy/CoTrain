@@ -9,6 +9,12 @@ class MessageQueue{
 public:
     typedef std::shared_ptr<MessageQueue> ptr;
 
+    //表明这个messagequeue是接受哪种信息的
+    enum Type{
+        Com,
+        Buf
+    };
+
     //把消息队列机制创建在线程池子上
     bool start_on_threadpool(ThreadPool::ptr threadpool, uint32_t port);
 
@@ -24,6 +30,10 @@ public:
 
     MessageQueue();
     MessageQueue(ServerNodeConfig::ptr config);
+
+    bool hasBufMessageToReceive();
+    void addBufMessageToReceive();
+    void subBufMessageToReceive();
 private:
     //互斥锁
     std::mutex m_mutex;
@@ -41,6 +51,10 @@ private:
     //wether stop
     bool m_stop = false;
     Semaphore::ptr m_sem_stop = Semaphore::ptr(new Semaphore(0));
+
+    //用来记录有几个buf文件需要接受
+    std::mutex m_bufmessage4receive_mutex;
+    uint16_t m_bufmessage4receive_count = 0;
 
     static const uint16_t Max_Producer_Number = 20;
 };
