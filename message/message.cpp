@@ -9,6 +9,7 @@ namespace CoTrain
 
     BufMessage::BufMessage()
     {
+        m_semaphore = Semaphore::ptr(new Semaphore(0));
         if (m_size == 0)
         {
             m_size = max_buf_len;
@@ -24,6 +25,8 @@ namespace CoTrain
     }
     BufMessage::BufMessage(uint64_t size)
     {
+        m_semaphore = Semaphore::ptr(new Semaphore(0));
+
         m_size = size;
         m_data = malloc(m_size);
         if (m_data == nullptr)
@@ -37,6 +40,27 @@ namespace CoTrain
 
     BufMessage::~BufMessage()
     {
+    }
+    void BufMessage::toFile(std::string filepath)
+    {
+    
+    }
+    std::string BufMessage::toString()
+    {
+        if(m_size == 0){
+            return "";
+        }
+        std::string s = std::string(static_cast<char*>(m_data), m_size);
+        return s;
+        // return "";
+    }
+    void BufMessage::wait()
+    {
+        m_semaphore->wait();
+    }
+    void BufMessage::notify()
+    {
+        m_semaphore->notify();
     }
     ComMessage::ComMessage(ComMessageType::ComType type, uint64_t uniqueID)
     {

@@ -209,12 +209,24 @@ Message::ptr TcpSocket::receive(bool isFixedSize)
             return message;
         }
     }else{
-        // 首先接收消息的大小
-        uint16_t size;
-        if (!receive(reinterpret_cast<char*>(&size), sizeof(uint16_t))) {
+
+        uint64_t size = 0;
+        if (!receive((&size), sizeof(size))) {
             return nullptr;
         }
-        Message::ptr message = Message::ptr(new BufMessage(size));
+
+        // std::vector<char> rec(fileSize);
+        // uint64_t receivedSize = 0;
+        // while (receivedSize < fileSize) {
+        //     uint64_t remain = fileSize - receivedSize;
+        //     uint64_t chunkSize = std::min(remain, static_cast<uint64_t>(MAX_CHUNK_SIZE));
+        //     if (!receive(rec.data() + receivedSize, chunkSize)) {
+        //         return nullptr;
+        //     }
+        //     receivedSize += chunkSize;
+        // }
+
+        BufMessage::ptr message = BufMessage::ptr(new BufMessage(size));
         // 根据大小分块接收消息内容
         uint16_t receivedSize = 0;
         while (receivedSize < size) {
@@ -229,6 +241,16 @@ Message::ptr TcpSocket::receive(bool isFixedSize)
         }
 
         message->setsize(size);
+
+        // TODO delete
+        std::string s = std::string((char *)(message->getdata()),size);
+
+        std::cout << s <<std::endl;
+
+        std::cout << message->toString() << std::endl;
+
+        message->notify();
+        
         return message;
     }
 

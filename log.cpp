@@ -23,7 +23,8 @@ namespace CoTrain
 
     void CoTrain::Logger::addAppender(LogAppender::ptr appender)
     {
-        m_appenderlist.push_back(appender);
+        if(appender != nullptr)
+            m_appenderlist.push_back(appender);
     }
 
     void CoTrain::Logger::delAppender(LogAppender::ptr appender)
@@ -208,6 +209,8 @@ namespace CoTrain
             std::unique_lock<std::mutex> lock(m_log_mutex);
             m_stop=true;
         }
-        m_log_thread->join();
+        if(m_log_thread != nullptr){
+            m_log_thread->join();
+        }
     }
 }

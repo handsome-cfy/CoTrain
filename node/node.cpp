@@ -63,7 +63,15 @@ void ServerNode::ProcessMessage(Message::ptr message)
     Task::ptr task = nullptr;
     // bufmessage
     if(message->getType()==0){
-        BufMessage::ptr bufM = BufMessage::ptr(message);
+        BufMessage::ptr bufM = std::static_pointer_cast<BufMessage>(message);
+        bufM->wait();
+        std::string s = bufM->toString();
+        std::cout<<"that is get" << std::endl;
+        std::cout << s << std::endl;
+        // LogManager::ptr logger =  LogManager::instance();
+        // logger->debug(
+        //     logger->CreateEvent(s)
+        // );
     }else{//commessage
         ComMessage::ptr comM = ComMessage::ptr(message);
         ComMessageType::ComType type = ComMessageType::ComType(comM->getType());
@@ -110,9 +118,16 @@ void ServerNode::ProcessMessage(Message::ptr message)
 void ServerNode::proccess()
 {
     m_threadpool->addLoopThread(
-        Thread::ptr(new Thread("ServerProccess",
+        Thread::ptr(new Thread("ServerComProccess",
         [this](){
             ProcessMessage(this->m_messagequeue->pop());
+        }))
+    );
+    m_threadpool->addLoopThread(
+        Thread::ptr(new Thread("ServerBufProccess",
+        [this](){
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            ProcessMessage(this->m_filequeue->pop());
         }))
     );
 }
@@ -149,11 +164,8 @@ void ClientNode::File()
 }
 bool ClientNode::sendfile(std::string filepath)
 {
-    
     std::ifstream file(filepath, std::ios::binary);
-
     if (file.is_open()) {
-
         this->File();
 
         // 获取文件大小
@@ -161,17 +173,14 @@ bool ClientNode::sendfile(std::string filepath)
         uint64_t fileSize = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        // 创建一个缓冲区来存储文件内容
-        const int bufferSize = 1024; // 缓冲区大小
-        char buffer[bufferSize];
-
         // 使用一个单独的socket连接将文件内容发送给服务器
         TcpSocket::ptr fileSocket = TcpSocket::ptr(new TcpSocket(m_socket));
-        
         fileSocket->connect(m_fileport);
         fileSocket->send(&fileSize, sizeof(fileSize)); // 发送文件大小
 
         // 分块发送文件内容
+        const int bufferSize = 1024; // 缓冲区大小
+        char buffer[bufferSize];
         while (fileSize > 0) {
             int chunkSize = std::min(fileSize, static_cast<uint64_t>(bufferSize));
             file.read(buffer, chunkSize);

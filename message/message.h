@@ -75,6 +75,7 @@ protected:
     uint16_t m_size;      // 消息大小
     uint64_t m_uniqueID;  // 独特ID编码
 
+    std::mutex m_mutex;
 
     void * m_data;
     Bufptr m_buf;
@@ -86,11 +87,20 @@ protected:
 //  带有一个缓冲区的message，设计用来传递数据
 class BufMessage: public Message{
 public:
+    typedef std::shared_ptr<BufMessage> ptr;
+
     void showdata();
     BufMessage();
     BufMessage(uint64_t size);
     ~BufMessage();
 
+    void toFile(std::string filepath);
+    std::string toString();
+
+    void wait();
+    void notify();
+protected:
+    Semaphore::ptr m_semaphore;
 };
 
 class ComMessageType{

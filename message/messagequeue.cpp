@@ -27,10 +27,16 @@ bool CoTrain::MessageQueue::start_on_threadpool(ThreadPool::ptr threadpool, uint
                             }
                             else{
                             Message::ptr message = m_tcp_server->getMessage(hasBufMessageToReceive());
-
+                            
                             if(message != nullptr){
                                 //等待获取
                                 count++;
+                                message->decodeHead();
+
+                                if(message->getsize() > 0 && message->getType() == 0){
+                                    this->subBufMessageToReceive();
+                                }
+                                
                                 this->push(message);
                             }else if(m_stop){
                                 //停止该服务
@@ -131,7 +137,7 @@ bool MessageQueue::hasBufMessageToReceive()
 {
     std::unique_lock<std::mutex> lock(m_bufmessage4receive_mutex);
     if(m_bufmessage4receive_count > 0){
-        m_bufmessage4receive_count--;
+        // m_bufmessage4receive_count--;
         return true;
     }
     return false;
