@@ -231,11 +231,45 @@ Message::ptr TcpSocket::receive(bool isFixedSize)
         }
     }else{
 
-        uint64_t size = 0;
-        if (!receive((&size), sizeof(size))) {
-            return nullptr;
-        }
+        // uint64_t size = 0;
+        // if (!receive((&size), sizeof(size))) {
+        //     return nullptr;
+        // }
+        // 定义固定大小的字符串长度
+        const int fixedSize = 10;
 
+        // 创建一个固定大小的缓冲区用于接收字符串
+        char buffer[fixedSize + 1]; // 加1是为了留出空间存储字符串结尾的 '\0'
+
+        // 使用接收端的 socket 进行接收
+        int bytesReceived = receive(buffer, fixedSize);
+
+        std::string receivedStr = "";
+        // 确保接收到了固定大小的数据
+        if (false) {
+            // 处理接收数据不完整的情况
+            // 可以根据实际需求进行错误处理或重试逻辑
+        } else {
+            // 接收到了固定大小的数据
+            buffer[fixedSize] = '\0'; // 添加字符串结尾的 '\0' 字符
+
+            // 将接收到的字符串转换为 std::string
+            receivedStr = buffer;
+            
+            send(buffer,fixedSize);
+            // 在这里对接收到的字符串进行处理
+            // 可以根据实际需求进行相应的操作
+            // 例如输出到控制台或进行其他业务逻辑处理
+        }
+        uint64_t size = 0;
+        try {
+            size = std::stoull(receivedStr);
+            // 在这里处理接收到的 uint64_t 类型的数据
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Invalid argument error: " << e.what() << std::endl;
+        } catch (const std::out_of_range& e) {
+            std::cerr << "Out of range error: " << e.what() << std::endl;
+        }
         // std::vector<char> rec(fileSize);
         // uint64_t receivedSize = 0;
         // while (receivedSize < fileSize) {

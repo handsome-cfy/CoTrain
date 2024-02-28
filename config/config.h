@@ -56,6 +56,8 @@ public:
     uint32_t getFilePort(){return m_data["ServerFilePort"];}
     std::string getPythonScriptPath(){return m_data["PythonScriptPath"];}
     std::string getGradientFilePath(){return m_data["GradientFilePath"];}
+    // std::string getExperimentPath(){return m_data["ExperimentPath"];}
+    std::string getExperimentPath(){return m_data["GradientFilePath"];}
 
     ClientNodeConfig(std::string filepath) : Config(filepath){
 

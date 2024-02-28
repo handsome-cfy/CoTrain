@@ -1,6 +1,23 @@
 #include "node.h"
 
 namespace CoTrain{
+// std::string getNewestFilePath(const std::string& folderPath) {
+//     std::string newestFilePath;
+//     std::time_t newestFileTime = 0;
+
+//     for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
+//         if (entry.is_regular_file()) {
+//             std::time_t fileTime = std::chrono::system_clock::to_time_t(std::filesystem::last_write_time(entry));
+//             if (fileTime > newestFileTime) {
+//                 newestFileTime = fileTime;
+//                 newestFilePath = entry.path().string();
+//             }
+//         }
+//     }
+
+//     return newestFilePath;
+// }
+
 CoTrain::ServerNode::ServerNode(ServerNodeConfig::ptr config, bool start)
 {
     // ServerNodeConfig::ptr serverconfig = static_cast<ServerNodeConfig::ptr> (config);
@@ -134,6 +151,7 @@ void ServerNode::proccess()
         [this](){
             std::this_thread::sleep_for(std::chrono::seconds(3));
             std::cout << this->m_filequeue->getsize() << std::endl;
+            uint16_t size = this->m_filequeue->getsize();
             ProcessMessage(this->m_filequeue->pop());
         }))
     );
@@ -184,15 +202,33 @@ bool ClientNode::sendfile(std::string filepath)
     if (file.is_open()) {
         this->File();
 
+        // 定义固定大小的字符串长度
+        const int fixedSize = 10;
+
         // 获取文件大小
         file.seekg(0, std::ios::end);
         uint64_t fileSize = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        // 使用一个单独的socket连接将文件内容发送给服务器
+        // 将文件大小转换为字符串
+        std::string fileSizeStr = std::to_string(fileSize);
+
+        // 填充字符串到固定大小
+        if (fileSizeStr.size() < fixedSize) {
+            std::string padding(fixedSize - fileSizeStr.size(), '0');
+            fileSizeStr = padding + fileSizeStr;
+        } else if (fileSizeStr.size() > fixedSize) {
+            // 处理文件大小超过固定大小的情况
+            // 可以根据实际需求进行错误处理或截断逻辑
+        }
+
+        // 使用一个单独的 socket 连接将文件大小发送给服务器
         TcpSocket::ptr fileSocket = TcpSocket::ptr(new TcpSocket(m_socket));
         fileSocket->connect(m_fileport);
-        fileSocket->send(&fileSize, sizeof(fileSize)); // 发送文件大小
+        fileSocket->send(fileSizeStr.c_str(), fileSizeStr.size()); // 发送文件大小字符串
+        
+        char sizebuffer[fixedSize] = "";
+        fileSocket->receive(sizebuffer, fixedSize);
 
         // 分块发送文件内容
         const int bufferSize = 1024; // 缓冲区大小
@@ -213,6 +249,58 @@ bool ClientNode::sendfile(std::string filepath)
     }
     return false;
 }
+bool ClientNode::startScript()
+{
+    Thread a = Thread("python_train",
+        [this](){
+            std::string cmd = "python ";
+            cmd += pythonscript_path;
+            std::system(cmd.c_str());
+        }
+    );
+    a.join();
+    return true;
+}
+void ClientNode::local_train()
+{
+    startScript();
+    while(!m_stop){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        // TODO to determined which file to update
+
+
+    }
+}
+std::string ClientNode::gennerateFileName()
+{
+    // 获取当前时间
+    std::time_t currentTime = std::time(nullptr);
+    std::tm* localTime = std::localtime(&currentTime);
+
+    // 构造文件名
+    std::stringstream fileNameStream;
+    fileNameStream << "file_" << localTime->tm_year + 1900 << "-"
+                   << std::setfill('0') << std::setw(2) << localTime->tm_mon + 1 << "-"
+                   << std::setfill('0') << std::setw(2) << localTime->tm_mday << "_"
+                   << std::setfill('0') << std::setw(2) << localTime->tm_hour << "-"
+                   << std::setfill('0') << std::setw(2) << localTime->tm_min << "-"
+                   << std::setfill('0') << std::setw(2) << localTime->tm_sec
+                   << ".json";
+
+    return fileNameStream.str();
+}
+// std::vector<std::string> ClientNode::getAllFileNames(const std::string &folderpath)
+// {
+//     std::vector<std::string> fileNames;
+
+//     for (const auto& entry : std::filesystem::directory_iterator(folderpath)) {
+//         if (entry.is_regular_file()) {
+//             fileNames.push_back(entry.path().filename().string());
+//         }
+//     }
+
+//     return fileNames;
+// }
 void ConnectedNode::AliveCount()
 {
     uint16_t count = 1;

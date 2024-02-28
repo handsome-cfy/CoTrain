@@ -125,6 +125,12 @@ public:
     m_idmananger = UniqueIDMananger::ptr(new UniqueIDMananger(UniqueIDMananger::IDtype::SnowFlake,m_machineID));
     
     m_fileport = config->getFilePort();
+
+    pythonscript_path = config->getPythonScriptPath();
+
+    experiment_path = config->getExperimentPath();
+
+    m_config = config;
     }
 
     // bool  isconnect() override;
@@ -136,8 +142,13 @@ public:
     void File();
     bool sendfile(std::string filepath);
 
+    bool startScript();
 
+    void local_train();
 
+    std::string gennerateFileName();
+
+    // std::vector<std::string> getAllFileNames(const std::string& folderpath);
 private:
     bool m_stop = false;
 
@@ -151,6 +162,13 @@ private:
     // 文件服务器的端口
     uint32_t m_fileport=8001;
 
+    ClientNodeConfig::ptr m_config;
+
+    // python 脚本路径
+    std::string pythonscript_path;
+    
+    // 实验文件路径
+    std::string experiment_path;
 };
 }
 #endif

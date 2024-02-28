@@ -3,6 +3,6 @@
     "ServerPort":8000,
     "ServerFilePort":8001,
     "MachineID":1,
-    "PythonScriptPath":"/Users/chenfeiyang/Documents/vscode/cfyserver/python",
-    "GradientFilePath":""
+    "PythonScriptPath":"/Users/chenfeiyang/Documents/vscode/cfyserver/python/train.py",
+    "GradientFilePath":"/Users/chenfeiyang/Documents/vscode/cfyserver/experiment"
 }
