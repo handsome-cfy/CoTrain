@@ -3,6 +3,7 @@
 
 #include"../message/messagequeue.h"
 #include"../socket.h"
+
 // #include"task.h"
 
 namespace CoTrain{
@@ -95,6 +96,7 @@ public:
 
     // loop to proccess
     void proccess();
+
 private:
     // 拥有一个消息队列来处理操作
     MessageQueue::ptr m_messagequeue;
@@ -133,6 +135,7 @@ public:
     //发送comtype为file的message
     void File();
     bool sendfile(std::string filepath);
+
 
 
 private:

@@ -2,3 +2,7 @@ obj
 *.o
 bin
 .VSCodeCounter
+experiment
+python/__pycache__
+python/.idea
+python/.pytest_cache

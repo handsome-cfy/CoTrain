@@ -2,5 +2,7 @@
     "ServerIP": "127.0.0.1",
     "ServerPort":8000,
     "ServerFilePort":8001,
-    "MachineID":1
+    "MachineID":1,
+    "PythonScriptPath":"/Users/chenfeiyang/Documents/vscode/cfyserver/python",
+    "GradientFilePath":""
 }

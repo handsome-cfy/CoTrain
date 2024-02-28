@@ -54,6 +54,9 @@ public:
     uint32_t getServerPort(){return m_data["ServerPort"];}
     uint64_t getMachineID(){return m_data["MachineID"];}
     uint32_t getFilePort(){return m_data["ServerFilePort"];}
+    std::string getPythonScriptPath(){return m_data["PythonScriptPath"];}
+    std::string getGradientFilePath(){return m_data["GradientFilePath"];}
+
     ClientNodeConfig(std::string filepath) : Config(filepath){
 
     }

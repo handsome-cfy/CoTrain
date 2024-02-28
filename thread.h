@@ -98,6 +98,8 @@ namespace CoTrain
         ThreadPool(){
             m_max_thread_number = 20;
             m_stop = false;
+
+            m_pool_sem = Semaphore::ptr(new Semaphore(1));
         };
 
         ThreadPool(ServerNodeConfig::ptr config);

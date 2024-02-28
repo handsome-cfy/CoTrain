@@ -78,6 +78,9 @@ void CoTrain::ThreadPool::enqueue(const Task &task)
 CoTrain::ThreadPool::ThreadPool(ServerNodeConfig::ptr config){
     m_max_thread_number = config->getMaxThreadNumber();
     m_stop = false;
+
+
+    m_pool_sem = Semaphore::ptr(new Semaphore(1));
 }
 
 CoTrain::ThreadPool::~ThreadPool()

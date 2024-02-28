@@ -161,7 +161,28 @@ bool TcpSocket::send(const Message::ptr message)
     return send(message->getdata(),message->getsize());
     // return false;
 }
+bool TcpSocket::send(const BufMessage::ptr message)
+{
+    // fileSocket->connect(m_fileport);
+    uint64_t fileSize = 0;
+    fileSize = message->getsize();
+    send(&fileSize, sizeof(fileSize)); // 发送文件大小
 
+    // 分块发送文件内容
+    const int bufferSize = 1024; // 缓冲区大小
+    char *buffer = nullptr;
+    buffer = (char*)message->getdata();
+    if(buffer==nullptr){
+        return false;
+    }
+    while (fileSize > 0) {
+        int chunkSize = std::min(fileSize, static_cast<uint64_t>(bufferSize));
+        send(buffer, chunkSize);
+        fileSize -= chunkSize;
+        buffer = buffer + chunkSize;
+    }
+    return true;
+}
 bool TcpSocket::receive(void *buffer, size_t size)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -300,6 +321,13 @@ void TcpServer::stop()
         socket->disconnect();
     }
 
+}
+bool TcpServer::sendMessage(Socket::ptr socket,Message::ptr message,bool isBuf)
+{
+    if(socket->isconnect()){
+        socket->send(message);
+    }
+    return false;
 }
 TcpServer::TcpServer()
 {

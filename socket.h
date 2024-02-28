@@ -143,6 +143,7 @@ public:
     bool connect(uint32_t port);
     bool send(const void* data, size_t size) override;
     bool send(const Message::ptr message) override;
+    bool send(const BufMessage::ptr message);
     bool receive(void* buffer, size_t size) override;
     Message::ptr receive(bool FixedSize=true) override;
     void disconnect() override;
@@ -180,6 +181,7 @@ public:
     typedef std::shared_ptr<TcpServer> ptr;
     //通过这个方法从网络中获取message
     Message::ptr getMessage(bool isBuf=false);
+    bool sendMessage(Socket::ptr socket,Message::ptr message,bool isBuf=false);
     void stop();
     TcpServer();
     TcpServer(ServerNodeConfig::ptr config);

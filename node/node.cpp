@@ -59,11 +59,17 @@ void *ServerNode::receiveFile(std::string filepath)
 }
 void ServerNode::ProcessMessage(Message::ptr message)
 {
+    if(message == nullptr){
+        return;
+    }
     message->decodeHead();
     Task::ptr task = nullptr;
     // bufmessage
     if(message->getType()==0){
         BufMessage::ptr bufM = std::static_pointer_cast<BufMessage>(message);
+        if(bufM == nullptr){
+            return;
+        }
         bufM->wait();
         std::string s = bufM->toString();
         std::cout<<"that is get" << std::endl;
@@ -127,13 +133,23 @@ void ServerNode::proccess()
         Thread::ptr(new Thread("ServerBufProccess",
         [this](){
             std::this_thread::sleep_for(std::chrono::seconds(3));
+            std::cout << this->m_filequeue->getsize() << std::endl;
             ProcessMessage(this->m_filequeue->pop());
         }))
     );
 }
 bool ClientNode::connect()
 {
-    return m_socket->connect();
+    bool socketconn = true;
+    socketconn =m_socket->connect();
+    if(!socketconn){
+        return false;
+    }
+    // ComMessage::ptr conmessage = ComMessage::ptr(new ComMessage(
+    //     ComMessageType::ComType::CONNECT,m_idmananger->generateID()->encode()
+    // ));
+    // m_socket->send(conmessage);
+    return socketconn;
 }
 void ClientNode::alive()
 {

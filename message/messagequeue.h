@@ -34,11 +34,15 @@ public:
     bool hasBufMessageToReceive();
     void addBufMessageToReceive();
     void subBufMessageToReceive();
+
+    uint16_t getsize(){return m_message_queue.size();}
 private:
     //互斥锁
     std::mutex m_mutex;
     //消息队列
     std::queue<Message::ptr> m_message_queue;
+
+    
     //current_len
     uint16_t m_len = 0;
 

@@ -68,6 +68,7 @@ namespace CoTrain
         switch (type)
         {
         case ComMessageType::ComType::AlIVE:
+        case ComMessageType::ComType::CONNECT:
             /* code */
             m_type = static_cast<uint16_t>(m_messagetype);
             m_operation = 0; // 设置操作为0，表示无特定操作
