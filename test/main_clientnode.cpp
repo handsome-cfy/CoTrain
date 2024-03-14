@@ -9,8 +9,10 @@ int main(void){
     ClientNode::ptr client = std::make_shared<ClientNode>(config);    
     client->connect();
     
-    // client->sendfile("/Users/chenfeiyang/Documents/vscode/cfyserver/setting/ClientNode.json");
+    client->sendfile("/Users/chenfeiyang/Documents/vscode/cfyserver/setting/ClientNode.json");
     client->startScript();
+    // client->sendfile("/Users/chenfeiyang/Documents/vscode/cfyserver/experiment/file_2024-03-28_15-46-13.json");
+
     client->alive();
     // Thread::ptr alivethread = Thread::ptr(new Thread("alive",[client](){
     //     client->alive();

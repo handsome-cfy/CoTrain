@@ -343,9 +343,10 @@ Message::ptr TcpServer::getMessage(bool isBuf)
             if (it != m_socket_list.end()) {
                 m_socket_list.erase(it);
             }
+            return nullptr;
         }
     }
-    return Message::ptr();
+    return nullptr;
 }
 
 void TcpServer::stop()

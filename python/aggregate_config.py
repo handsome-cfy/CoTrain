@@ -6,8 +6,11 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='示例脚本')
 
     # 添加命令行参数
-    parser.add_argument('--gradient_path', type=str, help='梯度路径')
-    parser.add_argument('--model_name', type=str, help='模型名称')
+    parser.add_argument('--gradient_path', type=str, help='梯度路径',default='')
+    parser.add_argument('--model_name', type=str, help='模型名称',default='ResNet18')
+    parser.add_argument('--dataset', type=str, help='数据集',default='CIFAR10')
+    parser.add_argument('--Algorithm',type=str,help='聚合算法',default='FedAvg')
+
 
     # 解析命令行参数
     args = parser.parse_args()

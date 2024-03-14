@@ -83,6 +83,8 @@ protected:
     constexpr static uint16_t max_buf_len = 1500;
     // uint16_t m_size;
 
+    bool isdecoded = false;
+
 };
 //  带有一个缓冲区的message，设计用来传递数据
 class BufMessage: public Message{

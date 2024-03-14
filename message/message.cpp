@@ -164,6 +164,9 @@ namespace CoTrain
     }
     void Message::decodeHead()
     {
+        if(isdecoded){
+            return;
+        }
         uint16_t header = 0;
 
         // 从 m_data 的开头复制头部信息
@@ -173,6 +176,8 @@ namespace CoTrain
         m_type = (header >> 13) & 0x07;
         m_operation = (header >> 8) & 0x1F;
         m_size = header & 0xFF;
+
+        isdecoded = true;
     }
     void Message::addMessageEnd()
     {
