@@ -13,10 +13,11 @@ def parse_arguments():
     parser.add_argument('--num_classes', type=int, help='类数量', default='10')
     parser.add_argument('--server_ip', type=str, help='ip', default='127.0.0.1')
     parser.add_argument('--server_port', type=str, help='port', default='8010')
-    parser.add_argument('--num_clients', type=int, help='the number of the client', default=10)
+    parser.add_argument('--num_clients', type=int, help='the number of the client', default=5)
     parser.add_argument('--epoch', type=int, default=100)
     parser.add_argument('--save_path', type=str, default="")
-    parser.add_argument('--batch_size',type=int,default=8)
+    parser.add_argument('--batch_size',type=int,default=16)
+    parser.add_argument('--random_seed',type=int,default=3037)
 
     # 解析命令行参数
     args = parser.parse_args()

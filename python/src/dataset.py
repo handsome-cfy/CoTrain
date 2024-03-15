@@ -27,6 +27,9 @@ class Cifar10(torch.utils.data.Dataset):
 
         self.transform = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor()
+            , torchvision.transforms.RandomCrop(32, padding=4)
+            , torchvision.transforms.RandomHorizontalFlip(p=0.5)
+            , torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
     def __getitem__(self, item):

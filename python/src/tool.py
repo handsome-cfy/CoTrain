@@ -4,7 +4,7 @@ from src.model import *
 from src.dataset import *
 
 
-def get_dataset(config: dict, train:bool, data_root="/tmp/public_dataset/pytorch") -> torch.utils.data.Dataset:
+def get_dataset(config: dict, train:bool, data_root=r"C:\Users\SERVER\Desktop\CoTrain\python\data") -> torch.utils.data.Dataset:
     name = config['dataset']
     # data_root = config['data_root']
     # train = config['train']

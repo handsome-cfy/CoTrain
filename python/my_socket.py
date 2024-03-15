@@ -3,6 +3,7 @@ import json
 import socket
 import threading
 
+
 class Server:
     def __init__(self, host, port):
         self.host = host
@@ -30,6 +31,7 @@ class Server:
             client_socket, client_address = self.server_socket.accept()
             print(f"与客户端 {client_address} 建立连接！")
 
+            # client_socket.settimeout(1)
             # 存储连接的套接字和地址
             self.connected_socket.append(client_socket)
             self.connected_address.append(client_address)
@@ -41,6 +43,7 @@ class Server:
     def handle_client(self, client_socket, client_address):
         try:
             while True:
+                pass
                 # # 接收客户端发送的数据
                 # data = client_socket.recv(1024).decode()
                 # print(f"接收到来自客户端 {client_address} 的数据：{data}")
@@ -55,7 +58,7 @@ class Server:
                 # response = str(result).encode()
                 # client_socket.send(response)
                 # print(f"向客户端 {client_address} 发送计算结果：{result}")
-                receive_json(client_socket, r'C:\Users\13391\Downloads\CoTrain-main\CoTrain-main\python\receive.json')
+                # receive_json(client_socket, r'C:\Users\13391\Downloads\CoTrain-main\CoTrain-main\python\receive.json')
 
         except Exception as e:
             print(f"处理客户端请求时发生错误：{e}")
@@ -73,7 +76,7 @@ class Server:
         self.server_socket.close()
         print("服务器已关闭。")
 
-    def receive_json(self, client_socket, buffer_size=2^256):
+    def receive_json(self, client_socket, buffer_size=2^64, end_marker=b"<END>"):
         try:
             # 接收数据并解码为JSON
             data = b""
@@ -82,21 +85,22 @@ class Server:
                 if not chunk:
                     break
                 data += chunk
+                if data.endswith(end_marker):
+                    data = data[:-len(end_marker)]
+                    break
             json_data = json.loads(data.decode())
             return json_data
 
         except Exception as e:
             print(f"接收JSON数据时发生错误：{e}")
 
-    def send_json(self, client_socket, json_data, buffer_size=2^256):
+    def send_json(self, client_socket, json_data, buffer_size=2^64, end_marker=b"<END>"):
         try:
             # 将JSON数据编码并分块发送给客户端
-            data = json.dumps(json_data).encode()
+            data = json.dumps(json_data).encode() + end_marker
             total_size = len(data)
             sent_size = 0
             while sent_size < total_size:
-                print(f"Have {total_size - sent_size} left")
-
                 chunk = data[sent_size:sent_size + buffer_size]
                 client_socket.send(chunk)
                 sent_size += len(chunk)
@@ -106,7 +110,7 @@ class Server:
             print(f"发送JSON数据时发生错误：{e}")
 
 
-# def receive_json(client_socket, file_path, buffer_size=2^256):
+# def receive_json(client_socket, file_path, buffer_size=2^64):
 #     try:
 #         # 接收数据并解码为JSON
 #         data = b""
@@ -128,7 +132,7 @@ class Server:
 #         print("JSON文件接收完成。")
 #
 #
-# def send_json(client_socket, file_path, buffer_size=2^256):
+# def send_json(client_socket, file_path, buffer_size=2^64):
 #     try:
 #         # 读取JSON文件数据
 #         with open(file_path, 'r') as file:
@@ -151,13 +155,13 @@ class Server:
 
 
 class Client:
-    def __init__(self,client_id ,server_host, server_port):
+    def __init__(self, client_id, server_host, server_port):
         self.client_id = client_id
         self.server_host = server_host
         self.server_port = server_port
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((self.server_host, self.server_port))
-
+        # self.client_socket.connect((self.server_host, self.server_port))
+        # self.client_socket.settimeout(1)
 
     def send_file(self, filename):
         try:
@@ -186,32 +190,34 @@ class Client:
         except Exception as e:
             print(f"发送计算请求时发生错误：{e}")
 
-    def receive_json(self, buffer_size=2^256):
+    def receive_json(self, buffer_size=2^64, end_marker=b"<END>"):
         try:
             # Receive data and decode it as JSON
             data = b""
             while True:
                 chunk = self.client_socket.recv(buffer_size)
-                print("received")
                 if not chunk:
                     break
                 data += chunk
+                if data.endswith(end_marker):
+                    data = data[:-len(end_marker)]
+                    break
             json_data = json.loads(data.decode())
             return json_data
 
         except Exception as e:
             print(f"An error occurred while receiving JSON data: {e}")
 
-    def send_json(self, json_data, buffer_size=2^256):
+    def send_json(self, json_data, buffer_size=2^64, end_marker=b"<END>"):
         try:
             # Encode the JSON data and send it to the client in chunks
-            data = json.dumps(json_data).encode()
+            data = json.dumps(json_data).encode() + end_marker
             total_size = len(data)
             sent_size = 0
             while sent_size < total_size:
                 chunk = data[sent_size:sent_size + buffer_size]
-                self.client_socket.send(chunk)
-                sent_size += len(chunk)
+                sent_bytes = self.client_socket.send(chunk)
+                sent_size += sent_bytes
             print("JSON data has been sent.")
 
         except Exception as e:
