@@ -4,7 +4,7 @@ from src.model import *
 from src.dataset import *
 
 
-def get_dataset(config: dict, train:bool, data_root="/tmp/public_dataset/pytorch") -> torch.utils.data.Dataset:
+def get_dataset(config: dict, train:bool, data_root=r"C:\tmp\public_dataset\pytorch") -> torch.utils.data.Dataset:
     name = config['dataset']
     # data_root = config['data_root']
     # train = config['train']
@@ -15,19 +15,22 @@ def get_dataset(config: dict, train:bool, data_root="/tmp/public_dataset/pytorch
         # 构建 SimpleDataset 数据集
         data = config['data']
         targets = config['targets']
-        dataset = SimpleDataset(data, targets)
+        trainset = SimpleDataset(data, targets)
     elif name == 'CIFAR10':
         # 构建 CIFAR10 数据集
-        dataset = Cifar10(data_root, train=train, download=download)
+        trainset = Cifar10(data_root, train=True, download=download)
+        testset = Cifar10(data_root, train=False, download=download)
     elif name == 'SVHN':
         # 构建 SVHN 数据集
-        dataset = SVHN(data_root, train=train, download=download)
+        trainset = SVHN(data_root, train=True, download=download)
+        testset = SVHN(data_root, train=False, download=download)
     elif name == 'MNIST':
         # 构建 MNIST 数据集
-        dataset = MNIST(data_root, train=train, download=download)
+        trainset = MNIST(data_root, train=True, download=download)
+        testset = MNIST(data_root, train=False, download=download)
     else:
         raise ValueError(f"Unsupported dataset: {name}")
-    return dataset
+    return trainset,testset
 
 def get_model(config: dict) -> nn.Module:
     name = config['model_name']

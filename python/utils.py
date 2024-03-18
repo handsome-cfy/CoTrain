@@ -1,13 +1,15 @@
 import json
+import random
 from typing import List
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
 
 
-def train_one_epoch(model: nn.Module, dataloader, gradients: list[torch.Tensor] = None,
-                    optimizer: torch.optim.Optimizer = None, loss_fn: nn.Module = None) -> list[Tensor]:
+def train_one_epoch(model: nn.Module, dataloader, gradients: List[torch.Tensor] = None,
+                    optimizer: torch.optim.Optimizer = None, loss_fn: nn.Module = None) -> List[Tensor]:
     '''用来训练一个epoch、传入中央服务器给的梯度、如果为空那么就使用上一轮保存的梯度
         返回值是这一轮最后的模型梯度
     '''
@@ -34,7 +36,7 @@ def train_one_epoch(model: nn.Module, dataloader, gradients: list[torch.Tensor] 
     return [param.grad.clone() for param in model.parameters()]
 
 
-def tensor2json(gradient: list[Tensor]):
+def tensor2json(gradient: List[Tensor]):
     # 将梯度张量转换为可序列化的列表
     serialized_gradient = [tensor.tolist() for tensor in gradient]
 
@@ -107,3 +109,11 @@ def generate_file_name():
 def save_json_to_file(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file)
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # 如果你在使用GPU，还需要设置CUDA的随机种子
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False

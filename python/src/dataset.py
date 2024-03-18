@@ -19,6 +19,7 @@ class Cifar10(torch.utils.data.Dataset):
         self.dataset = torchvision.datasets.CIFAR10(
             root=data_root, train=train, download=download,
         )
+        # self.targets =self.dataset.targets
         # self.OOD_dataset = torchvision.datasets.SVHN(
         #     root=data_root, split="train" if train else "test", download=download,
         # )
@@ -27,7 +28,8 @@ class Cifar10(torch.utils.data.Dataset):
 
         self.transform = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor()
-        ])
+            ,torchvision.transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
+            ])
 
     def __getitem__(self, item):
         img, label = self.dataset[item]

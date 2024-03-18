@@ -6,3 +6,5 @@ experiment
 python/__pycache__
 python/.idea
 python/.pytest_cache
+python/*.txt
+python/*.json
